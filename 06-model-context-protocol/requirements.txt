@@ -1,0 +1,12 @@
+# ========================================
+# Laboratorio 6: Model Context Protocol
+# ========================================
+
+# --- Parte 1: Local MCP ---
+mcp>=1.0.0
+anyio>=4.0.0
+
+# --- Parte 2 y 3: FastMCP Cloud + OpenAI ---
+fastmcp>=0.3.0
+httpx>=0.27.0
+openai>=1.0.0
