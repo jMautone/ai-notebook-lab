@@ -20,10 +20,10 @@ async def main():
     """
     
     # Configurar los parámetros del servidor
-    # Decisión: Usar 'python' como comando base (funciona en la mayoría de entornos)
-    # Si falla, se puede cambiar a 'python3' o 'py' según el sistema
+    # Decisión: Usar 'python3' como comando base (funciona en macOS y Linux)
+    # Si falla, se puede cambiar a 'python' o 'py' según el sistema
     server_params = StdioServerParameters(
-        command="python",
+        command="python3",
         args=["server.py"],
         env=None
     )
