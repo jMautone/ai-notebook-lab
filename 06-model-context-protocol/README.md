@@ -54,17 +54,20 @@ python client.py
 # Navegar al subdirectorio
 cd cloud-deployment
 
-# 1. Desplegar el servidor
-fastmcp deploy server_fastmcp.py
+# 1. Configurar credenciales (variables de entorno)
+$env:FASTMCP_SERVER_URL = "https://tu-servidor.fastmcp.app"
+$env:FASTMCP_API_KEY = "fmcp_xxxxxxxxxxxxx"
 
-# 2. Configurar credenciales en client_fastmcp.py
-# (Editar SERVER_URL y API_KEY)
+# 2. Desplegar el servidor (primera vez)
+fastmcp deploy server_fastmcp.py
 
 # 3. Ejecutar el cliente remoto
 python client_fastmcp.py
 ```
 
 📖 **Documentación completa**: Ver `cloud-deployment/README.md`
+
+> **🔐 Nota de Seguridad**: Las credenciales se configuran mediante variables de entorno, no en el código. Ver `.env.example` para referencia.
 
 ---
 
@@ -85,6 +88,11 @@ python client_fastmcp.py
 - **FastMCP**: Plataforma de despliegue en la nube
 - **anyio**: Framework asíncrono
 - **httpx**: Cliente HTTP asíncrono
+
+### 🔐 Seguridad
+- **Variables de Entorno**: Credenciales nunca en código fuente
+- **.gitignore**: Protección de archivos sensibles
+- **.env.example**: Plantilla de configuración segura
 
 ---
 

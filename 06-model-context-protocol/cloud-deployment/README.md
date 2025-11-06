@@ -89,11 +89,36 @@ Después del despliegue obtendrás:
 - **Server URL**: `https://your-name-animal.fastmcp.app`
 - **API Key**: `fmcp_xxxxxxxxxxxxx`
 
-**Edita `client_fastmcp.py` líneas 11-12:**
+### 🔐 Configuración Segura con Variables de Entorno (Recomendado)
 
-```python
-SERVER_URL = "https://tu-servidor.fastmcp.app"  # ← Tu URL aquí
-API_KEY = "fmcp_xxxxxxxxxxxxx"                   # ← Tu API Key aquí
+Por seguridad, **NO** incluyas credenciales en el código. En su lugar, usa variables de entorno:
+
+```powershell
+# Configurar variables de entorno en PowerShell
+$env:FASTMCP_SERVER_URL = "https://tu-servidor.fastmcp.app"
+$env:FASTMCP_API_KEY = "fmcp_xxxxxxxxxxxxx"
+
+# Verificar que estén configuradas
+echo $env:FASTMCP_SERVER_URL
+echo $env:FASTMCP_API_KEY
+```
+
+**Ventajas:**
+- ✅ No expone credenciales en el código
+- ✅ Fácil cambiar entre entornos (dev/prod)
+- ✅ Seguro para commits en Git
+- ✅ Estándar de la industria
+
+### ⚠️ Alternativa: Variables Persistentes (Opcional)
+
+Para que las variables persistan entre sesiones:
+
+```powershell
+# Configurar para el usuario actual
+[System.Environment]::SetEnvironmentVariable('FASTMCP_SERVER_URL', 'https://tu-servidor.fastmcp.app', 'User')
+[System.Environment]::SetEnvironmentVariable('FASTMCP_API_KEY', 'fmcp_xxxxxxxxxxxxx', 'User')
+
+# Reiniciar PowerShell para aplicar cambios
 ```
 
 
@@ -102,9 +127,16 @@ API_KEY = "fmcp_xxxxxxxxxxxxx"                   # ← Tu API Key aquí
 ## ▶️ Ejecución
 
 ```powershell
+# 1. Configurar credenciales (si aún no lo hiciste)
+$env:FASTMCP_SERVER_URL = "https://tu-servidor.fastmcp.app"
+$env:FASTMCP_API_KEY = "fmcp_xxxxxxxxxxxxx"
+
+# 2. Ejecutar el cliente
 cd cloud-deployment
 python client_fastmcp.py
 ```
+
+**Nota:** El cliente validará automáticamente que las variables de entorno estén configuradas y mostrará un mensaje de ayuda si faltan.
 
 ---
 
@@ -219,6 +251,20 @@ data: {"jsonrpc":"2.0","id":1,"result":{...}}
 ---
 
 ## 🐛 Solución de Problemas
+
+### Error: "Variable de entorno no configurada"
+
+**Síntoma:**
+```
+❌ Variable de entorno FASTMCP_SERVER_URL no configurada.
+```
+
+**Solución**: 
+Configura las variables de entorno antes de ejecutar:
+```powershell
+$env:FASTMCP_SERVER_URL = "https://tu-servidor.fastmcp.app"
+$env:FASTMCP_API_KEY = "fmcp_xxxxxxxxxxxxx"
+```
 
 ### Error: "Authentication failed" (401)
 **Solución**: 

@@ -6,12 +6,54 @@ Conecta directamente usando el protocolo de FastMCP Cloud
 import asyncio
 import httpx
 import json
+import os
+from typing import Optional
 
 
 # 🔧 CONFIGURACIÓN
-# Reemplaza con tu URL y API Key de FastMCP Cloud
-SERVER_URL = "https://tu-servidor.fastmcp.app"  # ← Reemplazar con tu URL
-API_KEY = "fmcp_xxxxxxxxxxxxx"                   # ← Reemplazar con tu API Key
+# Las credenciales se leen desde variables de entorno por seguridad
+# Configura las variables antes de ejecutar:
+#   $env:FASTMCP_SERVER_URL = "https://tu-servidor.fastmcp.app"
+#   $env:FASTMCP_API_KEY = "fmcp_xxxxxxxxxxxxx"
+
+def get_config() -> tuple[str, str]:
+    """
+    Obtiene la configuración desde variables de entorno.
+    
+    Returns:
+        tuple: (SERVER_URL, API_KEY)
+    
+    Raises:
+        ValueError: Si faltan variables de entorno requeridas
+    """
+    server_url = os.getenv("FASTMCP_SERVER_URL")
+    api_key = os.getenv("FASTMCP_API_KEY")
+    
+    if not server_url:
+        raise ValueError(
+            "❌ Variable de entorno FASTMCP_SERVER_URL no configurada.\n"
+            "   Configúrala con: $env:FASTMCP_SERVER_URL = \"https://tu-servidor.fastmcp.app\""
+        )
+    
+    if not api_key:
+        raise ValueError(
+            "❌ Variable de entorno FASTMCP_API_KEY no configurada.\n"
+            "   Configúrala con: $env:FASTMCP_API_KEY = \"fmcp_xxxxxxxxxxxxx\""
+        )
+    
+    return server_url, api_key
+
+
+# Obtener configuración al inicio
+try:
+    SERVER_URL, API_KEY = get_config()
+except ValueError as e:
+    print(str(e))
+    print("\n💡 Ejemplo de configuración en PowerShell:")
+    print('   $env:FASTMCP_SERVER_URL = "https://fun-peach-cattle.fastmcp.app"')
+    print('   $env:FASTMCP_API_KEY = "fmcp_XdpnB18jCRHFN02IJI99yDrUbdxxUBhq-IR4BAjN4ZI"')
+    print("\nLuego ejecuta nuevamente: python client_fastmcp.py")
+    exit(1)
 
 
 async def list_tools():
