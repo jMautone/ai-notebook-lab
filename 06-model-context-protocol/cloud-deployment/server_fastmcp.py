@@ -46,12 +46,3 @@ def echo_prompt(text: str) -> str:
     """Prompt de ejemplo"""
     return text
 
-
-# 🎯 ENTRYPOINT para FastMCP Cloud
-# FastMCP Cloud buscará automáticamente una variable llamada 'mcp', 'server', o 'app'
-# Ya tenemos 'mcp' definida arriba, así que esto funcionará automáticamente
-
-# Si quieres ejecutar localmente para probar:
-if __name__ == "__main__":
-    # Esto permite ejecutar el servidor localmente con: python server_fastmcp.py
-    mcp.run()

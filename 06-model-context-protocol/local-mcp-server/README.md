@@ -10,10 +10,10 @@ Esta implementación incluye un servidor MCP que expone la herramienta `say_hell
 
 ```
 06-model-context-protocol/
-├── server.py              # Servidor MCP con herramienta say_hello
-├── client.py              # Cliente MCP (demo y pruebas)
-├── requirements.txt       # Dependencias del proyecto
-└── PARTE1_README.md       # Este archivo
+└── local-mcp-server/      # Parte 1: Local MCP Server
+    ├── server.py          # Servidor MCP con herramienta say_hello
+    ├── client.py          # Cliente MCP (demo y pruebas)
+    └── README.md          # Este archivo
 ```
 
 **Principio:** Código y tests NO se mezclan en proyectos reales, pero para este laboratorio educativo, `client.py` sirve como demo ejecutable.
@@ -52,6 +52,8 @@ Esta implementación incluye un servidor MCP que expone la herramienta `say_hell
 ### Paso 1: Instalar dependencias
 
 ```powershell
+# Desde la raíz del laboratorio
+cd 06-model-context-protocol
 pip install -r requirements.txt
 ```
 
@@ -68,7 +70,7 @@ pip install mcp anyio
 ### Ejecutar el cliente (inicia automáticamente el servidor):
 
 ```powershell
-cd 06-model-context-protocol
+cd local-mcp-server
 python client.py
 ```
 
@@ -178,7 +180,14 @@ pip install mcp anyio
 
 **Solución**: Asegúrate de estar en el directorio correcto:
 ```powershell
-cd 06-model-context-protocol
+cd 06-model-context-protocol/local-mcp-server
+```
+
+### Error: "No module named 'mcp'"
+
+**Solución**: Asegúrate de tener instalado el SDK correcto:
+```powershell
+pip install mcp>=1.0.0
 ```
 
 ---
@@ -187,7 +196,10 @@ cd 06-model-context-protocol
 
 - [MCP Documentation](https://modelcontextprotocol.io/)
 - [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
+- [MCP Specification](https://spec.modelcontextprotocol.io/)
 
 ---
 
 **¡Parte 1 completada! 🎉**
+
+**Siguiente paso:** Parte 2 - Cloud Deployment (ver `../cloud-deployment/README.md`)
