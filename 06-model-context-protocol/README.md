@@ -19,10 +19,17 @@ Este laboratorio explora el **Model Context Protocol (MCP)**, un protocolo está
 │   ├── server.py                  # Servidor MCP local (STDIO)
 │   └── client.py                  # Cliente MCP local (STDIO)
 │
-└── cloud-deployment/              # 📂 Parte 2: Despliegue en la Nube
-    ├── README.md                  # Documentación Parte 2
-    ├── server_fastmcp.py          # Servidor MCP para FastMCP Cloud
-    └── client_fastmcp.py          # Cliente remoto con autenticación
+├── cloud-deployment/              # 📂 Parte 2: Despliegue en la Nube
+│   ├── README.md                  # Documentación Parte 2
+│   ├── server_fastmcp.py          # Servidor MCP para FastMCP Cloud
+│   ├── client_fastmcp.py          # Cliente remoto con autenticación
+│   └── .env.example               # Plantilla de configuración
+│
+└── openai-integration/            # 📂 Parte 3: Integración OpenAI
+    ├── README.md                  # Documentación Parte 3
+    ├── server_fastmcp_openai.py   # Servidor MCP con count_letter_r
+    ├── client_openai.py           # Cliente OpenAI + MCP
+    └── .env.example               # Plantilla de configuración
 ```
 
 ---
@@ -65,9 +72,27 @@ fastmcp deploy server_fastmcp.py
 python client_fastmcp.py
 ```
 
-📖 **Documentación completa**: Ver `cloud-deployment/README.md`
+### Parte 3: OpenAI Integration (Integración con OpenAI)
 
-> **🔐 Nota de Seguridad**: Las credenciales se configuran mediante variables de entorno, no en el código. Ver `.env.example` para referencia.
+```powershell
+# Navegar al subdirectorio
+cd openai-integration
+
+# 1. Configurar credenciales (variables de entorno)
+$env:OPENAI_API_KEY = "sk-proj-xxxxxxxxxxxxx"
+$env:FASTMCP_SERVER_URL = "https://tu-servidor.fastmcp.app"
+$env:FASTMCP_API_KEY = "fmcp_xxxxxxxxxxxxx"
+
+# 2. Desplegar el servidor con count_letter_r (primera vez)
+fastmcp deploy server_fastmcp_openai.py
+
+# 3. Ejecutar el cliente OpenAI con integración MCP
+python client_openai.py
+```
+
+📖 **Documentación completa**: Ver `openai-integration/README.md`
+
+> **🤖 Nota**: Usa el modelo `gpt-4o-mini` para las pruebas con function calling.
 
 ---
 
@@ -77,7 +102,7 @@ python client_fastmcp.py
 |-------|------|--------|-----------|
 | **Parte 1** | Local MCP Server | ✅ Completado | `local-mcp-server/` |
 | **Parte 2** | Cloud Deployment | ✅ Completado | `cloud-deployment/` |
-| **Parte 3** | OpenAI Integration | ⏳ Pendiente | - |
+| **Parte 3** | OpenAI Integration | ✅ Completado | `openai-integration/` |
 
 ---
 
@@ -86,6 +111,7 @@ python client_fastmcp.py
 - **Python 3.8+**
 - **MCP SDK**: Protocolo de comunicación modelo-herramientas
 - **FastMCP**: Plataforma de despliegue en la nube
+- **OpenAI API**: GPT-4o-mini con function calling
 - **anyio**: Framework asíncrono
 - **httpx**: Cliente HTTP asíncrono
 
@@ -112,7 +138,8 @@ python client_fastmcp.py
 - ✅ Implementar clientes MCP para consumir servicios
 - ✅ Desplegar servidores MCP en la nube usando FastMCP
 - ✅ Configurar autenticación remota con Bearer Tokens
-- ⏳ Integrar herramientas MCP con modelos de OpenAI
+- ✅ Integrar herramientas MCP con modelos de OpenAI
+- ✅ Implementar function calling con GPT-4o-mini
 
 ---
 
