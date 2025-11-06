@@ -347,11 +347,4 @@ $env:FASTMCP_API_KEY = "fmcp_..."
 
 **¡Parte 3 completada! 🎉**
 
-**Has logrado:**
-- ✅ Crear una herramienta MCP personalizada
-- ✅ Desplegarla en la nube con FastMCP
-- ✅ Integrarla con GPT-4o-mini
-- ✅ Implementar function calling completo
-- ✅ Probar con casos reales del enunciado
 
-**Laboratorio 6 completo:** Has dominado el Model Context Protocol end-to-end! 🚀
