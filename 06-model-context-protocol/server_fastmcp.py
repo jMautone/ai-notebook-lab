@@ -6,6 +6,7 @@ Adaptación del servidor local para desplegar en FastMCP Cloud
 from fastmcp import FastMCP
 
 # Crear instancia de FastMCP
+# Esta es la instancia que FastMCP Cloud buscará automáticamente
 mcp = FastMCP("Hello MCP Server")
 
 
@@ -30,6 +31,7 @@ def say_hello(name: str) -> str:
 
 @mcp.resource("echo://static")
 def echo_resource() -> str:
+    """Recurso estático de ejemplo"""
     return "Echo!"
 
 
@@ -41,4 +43,15 @@ def echo_template(text: str) -> str:
 
 @mcp.prompt("echo")
 def echo_prompt(text: str) -> str:
+    """Prompt de ejemplo"""
     return text
+
+
+# 🎯 ENTRYPOINT para FastMCP Cloud
+# FastMCP Cloud buscará automáticamente una variable llamada 'mcp', 'server', o 'app'
+# Ya tenemos 'mcp' definida arriba, así que esto funcionará automáticamente
+
+# Si quieres ejecutar localmente para probar:
+if __name__ == "__main__":
+    # Esto permite ejecutar el servidor localmente con: python server_fastmcp.py
+    mcp.run()
