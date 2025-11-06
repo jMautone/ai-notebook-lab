@@ -19,9 +19,6 @@ def say_hello(name: str) -> str:
         
     Returns:
         Un mensaje de bienvenida personalizado
-        
-    Raises:
-        ValueError: Si el nombre está vacío o solo contiene espacios
     """
     # Validar que el nombre no esté vacío
     if not name or not name.strip():
@@ -31,7 +28,17 @@ def say_hello(name: str) -> str:
     return f"¡Hola, {name}! Bienvenido al mundo MCP en la nube."
 
 
-# Para desarrollo local
-if __name__ == "__main__":
-    # Ejecutar servidor en modo desarrollo
-    mcp.run()
+@mcp.resource("echo://static")
+def echo_resource() -> str:
+    return "Echo!"
+
+
+@mcp.resource("echo://{text}")
+def echo_template(text: str) -> str:
+    """Echo the input text"""
+    return f"Echo: {text}"
+
+
+@mcp.prompt("echo")
+def echo_prompt(text: str) -> str:
+    return text
