@@ -185,6 +185,19 @@ Domina el protocolo estándar para comunicación modelo-herramientas:
 - **Jupyter Notebook / JupyterLab**: Entorno de desarrollo interactivo
 - **Git**: Control de versiones
 
+### 💻 Entorno de Ejecución Recomendado
+
+**Google Colab** (Recomendado para Labs 1-5):
+- ✅ **Ventajas**: GPU gratuita, sin instalación local, ejecución en la nube
+- ✅ **Ideal para**: Notebooks interactivos (Labs 1-5)
+- 🔗 **Acceso**: [colab.research.google.com](https://colab.research.google.com)
+- 📝 **Cómo usar**: Sube los archivos `.ipynb` directamente o conéctalos desde GitHub
+
+**⚠️ Excepción**: El **Lab 6 (Model Context Protocol)** requiere ejecución local con Python:
+- Usa scripts `.py` que necesitan entorno local
+- Requiere instalación de dependencias específicas
+- No compatible con Google Colab
+
 ### API Keys
 
 #### 🆓 Gratuitas (Labs 1-3)
