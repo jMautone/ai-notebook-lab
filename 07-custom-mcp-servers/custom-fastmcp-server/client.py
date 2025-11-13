@@ -1,8 +1,6 @@
-"""
-Cliente para probar el servidor MCP personalizado.
+"""Cliente para probar el servidor MCP personalizado.
 
-Este script conecta al servidor FastMCP Cloud o local y prueba todas las herramientas
-disponibles. Usa variables de entorno para configuración segura.
+Este script conecta al servidor FastMCP Cloud. Usa variables de entorno para configuración segura.
 """
 
 import asyncio
@@ -10,44 +8,33 @@ import json
 import os
 from typing import Any, Optional
 
-# Para usar este script, necesitas instalar:
-# pip install httpx
 
-
-def get_server_config() -> tuple[str, Optional[str]]:
+def get_server_config() -> tuple[str, str]:
     """
-    Obtiene la configuración del servidor desde variables de entorno.
-    
-    Soporta dos modos:
-    1. LOCAL: http://localhost:8000 (sin autenticación)
-    2. FASTMCP CLOUD: URL de FastMCP Cloud con API Key
+    Obtiene la configuración del servidor FastMCP Cloud desde variables de entorno.
     
     Returns:
-        tuple: (SERVER_URL, API_KEY o None)
+        tuple: (SERVER_URL, API_KEY)
     
     Raises:
         ValueError: Si la configuración es inválida
     """
-    # Intentar obtener configuración de FastMCP Cloud
     server_url = os.getenv("FASTMCP_SERVER_URL")
     api_key = os.getenv("FASTMCP_API_KEY")
     
-    if server_url:
-        # Modo FastMCP Cloud
-        if not api_key:
-            raise ValueError(
-                "❌ FASTMCP_SERVER_URL configurada pero falta FASTMCP_API_KEY\n"
-                "   Configúrala con: $env:FASTMCP_API_KEY = \"fmcp_xxxxx\""
-            )
-        return server_url, api_key
+    if not server_url or not api_key:
+        raise ValueError(
+            "❌ Variables de entorno no configuradas\n"
+            "   Configúralas con:\n"
+            "   $env:FASTMCP_SERVER_URL = \"https://...\"\n"
+            "   $env:FASTMCP_API_KEY = \"fmcp_xxxxx\""
+        )
     
-    # Modo local (default)
-    local_url = "http://localhost:8000"
-    return local_url, None
+    return server_url, api_key
 
 
 class MCPClient:
-    """Cliente para conectar con el servidor MCP (local o FastMCP Cloud)."""
+    """Cliente para conectar con el servidor MCP FastMCP Cloud."""
     
     def __init__(
         self,
@@ -59,7 +46,7 @@ class MCPClient:
         
         Args:
             server_url: URL del servidor (si None, usa variables de entorno)
-            api_key: API Key para autenticación (si None, modo local)
+            api_key: API Key para autenticación (si None, lo obtiene de variables de entorno)
         """
         if server_url is None:
             server_url, api_key = get_server_config()
@@ -67,19 +54,15 @@ class MCPClient:
         self.server_url = server_url
         self.api_key = api_key
         self.session = None
-        self.is_cloud = api_key is not None
     
     async def connect(self):
-        """Conecta con el servidor."""
+        """Conecta con el servidor FastMCP Cloud."""
         try:
             import httpx
             self.session = httpx.AsyncClient()
             
-            if self.is_cloud:
-                print(f"🌐 Conectado a FastMCP Cloud: {self.server_url}")
-                print(f"🔐 API Key: {self.api_key[:20]}...")
-            else:
-                print(f"✅ Conectado a servidor local: {self.server_url}")
+            print(f"🌐 Conectado a FastMCP Cloud: {self.server_url}")
+            print(f"🔐 API Key: {self.api_key[:20]}...")
         except ImportError:
             print("❌ httpx no está instalado")
             print("Instálalo con: pip install httpx")
@@ -106,51 +89,46 @@ class MCPClient:
             raise RuntimeError("No conectado al servidor")
         
         try:
-            if self.is_cloud:
-                # Modo FastMCP Cloud - usar protocolo JSON-RPC
-                response = await self.session.post(
-                    f"{self.server_url}/mcp",
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json",
-                        "Accept": "application/json, text/event-stream"
-                    },
-                    json={
-                        "jsonrpc": "2.0",
-                        "id": 2,
-                        "method": "tools/call",
-                        "params": {
-                            "name": tool_name,
-                            "arguments": kwargs
-                        }
-                    },
-                    timeout=30.0
-                )
-                response.raise_for_status()
-                
-                # Parsear respuesta SSE
-                content = response.text
-                if 'text/event-stream' in response.headers.get('content-type', ''):
-                    lines = content.strip().split('\n')
-                    for line in lines:
-                        if line.startswith('data: '):
-                            data = line[6:]
-                            result = json.loads(data)
-                            # Extraer el contenido de texto
-                            if "result" in result:
-                                content_list = result["result"].get("content", [])
-                                if content_list and "text" in content_list[0]:
-                                    return {"success": True, "text": content_list[0]["text"]}
-                            return result
-                else:
-                    return response.json()
+            # FastMCP Cloud - usar protocolo JSON-RPC
+            url = self.server_url
+            if not url.endswith("/mcp"):
+                url = f"{url}/mcp"
+            
+            response = await self.session.post(
+                url,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream"
+                },
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/call",
+                    "params": {
+                        "name": tool_name,
+                        "arguments": kwargs
+                    }
+                },
+                timeout=30.0
+            )
+            response.raise_for_status()
+            
+            # Parsear respuesta SSE
+            content = response.text
+            if 'text/event-stream' in response.headers.get('content-type', ''):
+                lines = content.strip().split('\n')
+                for line in lines:
+                    if line.startswith('data: '):
+                        data = line[6:]
+                        result = json.loads(data)
+                        # Extraer el contenido de texto
+                        if "result" in result:
+                            content_list = result["result"].get("content", [])
+                            if content_list and "text" in content_list[0]:
+                                return {"success": True, "text": content_list[0]["text"]}
+                        return result
             else:
-                # Modo local - protocolo simple HTTP
-                response = await self.session.post(
-                    f"{self.server_url}/tools/{tool_name}",
-                    json=kwargs
-                )
-                response.raise_for_status()
                 return response.json()
         except Exception as e:
             return {"error": str(e)}
@@ -166,48 +144,37 @@ class MCPClient:
             raise RuntimeError("No conectado al servidor")
         
         try:
-            if self.is_cloud:
-                # FastMCP Cloud
-                response = await self.session.post(
-                    f"{self.server_url}/mcp",
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json",
-                        "Accept": "application/json, text/event-stream"
-                    },
-                    json={
-                        "jsonrpc": "2.0",
-                        "id": 1,
-                        "method": "tools/list",
-                        "params": {}
-                    },
-                    timeout=30.0
-                )
-                response.raise_for_status()
-                
-                content = response.text
-                if 'text/event-stream' in response.headers.get('content-type', ''):
-                    lines = content.strip().split('\n')
-                    for line in lines:
-                        if line.startswith('data: '):
-                            data = line[6:]
-                            return json.loads(data)
-                else:
-                    return response.json()
+            # FastMCP Cloud
+            url = self.server_url
+            if not url.endswith("/mcp"):
+                url = f"{url}/mcp"
+            
+            response = await self.session.post(
+                url,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream"
+                },
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "tools/list",
+                    "params": {}
+                },
+                timeout=30.0
+            )
+            response.raise_for_status()
+            
+            content = response.text
+            if 'text/event-stream' in response.headers.get('content-type', ''):
+                lines = content.strip().split('\n')
+                for line in lines:
+                    if line.startswith('data: '):
+                        data = line[6:]
+                        return json.loads(data)
             else:
-                # Local - devolver herramientas conocidas
-                return {
-                    "tools": [
-                        {"name": "analyze_text", "description": "Analiza estadísticas de un texto"},
-                        {"name": "convert_text", "description": "Convierte texto entre formatos"},
-                        {"name": "count_character", "description": "Cuenta ocurrencias de un carácter"},
-                        {"name": "get_system_info", "description": "Información del sistema"},
-                        {"name": "get_environment_info", "description": "Variables de entorno"},
-                        {"name": "read_file", "description": "Lee archivos"},
-                        {"name": "list_directory", "description": "Lista directorios"},
-                        {"name": "generate_sample_data", "description": "Genera datos de muestra"}
-                    ]
-                }
+                return response.json()
         except Exception as e:
             print(f"Error al listar herramientas: {e}")
             return []
@@ -284,10 +251,14 @@ async def test_file_tools(client: MCPClient):
         file_path="README.md",
         lines=5
     )
-    if result.get("success"):
-        print(f"   Contenido (primeras líneas):\n{result['content'][:200]}...")
+    # read_file retorna el contenido como string en la clave "text"
+    if "error" in result:
+        print(f"   Error: {result['error']}")
+    elif "text" in result:
+        content = result["text"][:200]
+        print(f"   Contenido (primeras líneas):\n{content}...")
     else:
-        print(f"   Error: {result.get('error')}")
+        print(f"   Resultado: {json.dumps(result, indent=2)}")
 
 
 async def test_data_generation_tools(client: MCPClient):
@@ -369,7 +340,6 @@ async def main():
         
         print(f"\n🔧 Configuración:")
         print(f"   • Servidor: {client.server_url}")
-        print(f"   • Modo: {'FastMCP Cloud' if client.is_cloud else 'Local'}")
         
         # Conectar
         print()
@@ -385,8 +355,7 @@ async def main():
         await interactive_mode(client)
         
     except ConnectionError:
-        print("\n❌ No se pudo conectar al servidor")
-        print("Asegúrate de que el servidor está ejecutándose en http://localhost:8000")
+        print("\n❌ No se pudo conectar al servidor FastMCP Cloud")
     except Exception as e:
         print(f"\n❌ Error: {e}")
     finally:

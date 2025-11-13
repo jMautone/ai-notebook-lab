@@ -1,25 +1,16 @@
-"""
-Servidor MCP personalizado usando FastMCP.
+"""Servidor MCP personalizado usando FastMCP.
 
 Este servidor expone herramientas personalizadas que pueden ser
-invocadas desde un IDE o desde modelos de lenguaje.
-
-Compatible con FastMCP Cloud - Sigue el patrón de Parte 3 (Lab 6)
+invocadas desde FastMCP Cloud.
 """
 
 import os
 import sys
 
 # Importar FastMCP
-try:
-    from fastmcp import FastMCP
-except ImportError:
-    print("❌ Error: FastMCP no está instalado")
-    print("Instálalo con: pip install fastmcp")
-    sys.exit(1)
+from fastmcp import FastMCP
 
 # Crear instancia del servidor
-# IMPORTANTE: Usar formato simple sin parámetros adicionales para compatibilidad con FastMCP Cloud
 mcp = FastMCP("Lab7 Custom MCP Server")
 
 
@@ -237,27 +228,7 @@ def generate_sample_data(data_type: str, count: int) -> str:
 
 
 # ============================================================================
-# PUNTO DE ENTRADA - COMPATIBLE CON FASTMCP CLOUD
+# PUNTO DE ENTRADA - FASTMCP CLOUD
 # ============================================================================
 
 # FastMCP Cloud ejecuta el servidor automáticamente
-# No necesita async def main() ni asyncio.run()
-
-if __name__ == "__main__":
-    # Para testing local (opcional)
-    print("=" * 60)
-    print("🚀 Servidor MCP Personalizado")
-    print("=" * 60)
-    print()
-    print("📋 Herramientas disponibles:")
-    print("  • analyze_text")
-    print("  • convert_text")
-    print("  • count_character")
-    print("  • get_system_info")
-    print("  • get_environment_info")
-    print("  • read_file")
-    print("  • list_directory")
-    print("  • generate_sample_data")
-    print()
-    print("✅ Servidor listo para FastMCP Cloud")
-    print("=" * 60)
