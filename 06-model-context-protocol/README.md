@@ -131,17 +131,5 @@ python client_openai.py
 
 ---
 
-## 🎯 Objetivos de Aprendizaje
-
-- ✅ Comprender la arquitectura del Model Context Protocol (MCP)
-- ✅ Crear servidores MCP con herramientas personalizadas
-- ✅ Implementar clientes MCP para consumir servicios
-- ✅ Desplegar servidores MCP en la nube usando FastMCP
-- ✅ Configurar autenticación remota con Bearer Tokens
-- ✅ Integrar herramientas MCP con modelos de OpenAI
-- ✅ Implementar function calling con GPT-4o-mini
-
----
-
 **Curso**: Inteligencia Artificial  
 **Laboratorio**: 6 - Model Context Protocol
