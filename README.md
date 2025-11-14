@@ -49,10 +49,14 @@ ai-notebook-lab/
 ├── 📂 05-advanced-rag-agents/
 │   └── Sistemas avanzados combinando RAG y agentes autónomos
 │
-└── 📂 06-model-context-protocol/
-    ├── local-mcp-server/         # Implementación local con STDIO
-    ├── cloud-deployment/          # Despliegue en FastMCP Cloud
-    └── openai-integration/        # Integración OpenAI + MCP
+├── 📂 06-model-context-protocol/
+│   ├── local-mcp-server/         # Implementación local con STDIO
+│   ├── cloud-deployment/          # Despliegue en FastMCP Cloud
+│   └── openai-integration/        # Integración OpenAI + MCP
+│
+└── 📂 07-custom-mcp-servers/
+    ├── custom-fastmcp-server/     # Servidor MCP personalizado con FastMCP
+    └── README.md                  # Documentación e integración MCP
 ```
 
 ---
@@ -158,7 +162,31 @@ Domina el protocolo estándar para comunicación modelo-herramientas:
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+### 🌐 Lab 7: Custom MCP Servers
+**Servidores MCP Personalizados Avanzados**
+
+Crea e integra servidores Model Context Protocol personalizados en FastMCP Cloud:
+
+- 🔹 Desarrollo de servidores MCP con FastMCP
+- 🔹 Definición de herramientas personalizadas (texto, sistema, archivos, datos)
+- 🔹 Integración en VS Code mediante `.vscode/mcp.json`
+- 🔹 Integración de Notion MCP desde el IDE
+- 🔹 Arquitectura cliente-servidor en la nube
+
+#### 📂 Estructura
+- **custom-fastmcp-server/**: Servidor MCP alojado en FastMCP Cloud
+  - `server.py` - Implementación del servidor con herramientas
+  - Herramientas: análisis de texto, info del sistema, operaciones de archivos, generación de datos
+- **Integración IDE**: Configuración centralizada en `.vscode/mcp.json` para Notion MCP y FastMCP personalizados
+
+**Tecnologías**: FastMCP, FastMCP Cloud, MCP Protocol, Notion API, VS Code MCP
+
+**🎯 Requisitos**: 
+- ✅ FastMCP Cloud deployment (sin instalación local)
+- ✅ Notion API Key (opcional, para integración Notion)
+- ✅ Configuración IDE mediante `.vscode/mcp.json`
+
+---
 
 ### Core Libraries
 - **Python 3.8+**: Lenguaje principal
@@ -233,6 +261,7 @@ Domina el protocolo estándar para comunicación modelo-herramientas:
 ### Para Avanzados
 - Dirígete directamente a **Lab 5** (Advanced RAG)
 - Explora **Lab 6** (MCP) para arquitecturas distribuidas
+- Crea servidores personalizados con **Lab 7** (Custom MCP Servers)
 - Experimenta con `openai-integration-extra/` para features avanzadas
 
 ---
