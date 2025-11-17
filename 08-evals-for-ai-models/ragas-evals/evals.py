@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -11,7 +12,8 @@ from ragas.metrics.collections import Faithfulness
 sys.path.insert(0, str(Path(__file__).parent))
 from rag import default_rag_client
 
-api_key = ""
+# Cargar API key desde variable de entorno
+api_key = os.getenv("OPENAI_API_KEY")
 
 openai_client = OpenAI(api_key=api_key)
 async_openai_client = AsyncOpenAI(api_key=api_key)
