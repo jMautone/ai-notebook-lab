@@ -29,7 +29,28 @@ def load_dataset():
         root_dir=".",
     )
 
-    data_samples = []
+    data_samples = [
+        {
+            "question": "¿Cuál fue el impacto de la Revolución Industrial en la sociedad?",
+            "references": ["La Revolución Industrial transformó la sociedad mediante la mecanización de la manufactura, provocando la migración rural-urbana y la creación de la clase obrera moderna. Aunque aumentó significativamente la producción de bienes y contribuyó al surgimiento del capitalismo moderno, también generó condiciones laborales precarias, contaminación ambiental y una brecha de desigualdad socioeconómica entre propietarios de fábricas y trabajadores."]
+        },
+        {
+            "question": "¿Cuál es el proceso de fotosíntesis en las plantas?",
+            "references": ["La fotosíntesis es el proceso donde las plantas convierten luz solar, agua y CO2 en glucosa y oxígeno. Ocurre en dos fases: la reacción luminosa genera ATP y NADPH usando energía de la luz, mientras que el ciclo de Calvin sintetiza glucosa a partir del CO2. Es esencial para producir oxígeno respirable y alimento para la mayoría de los organismos vivos."]
+        },
+        {
+            "question": "¿Qué es el cambio climático y cuáles son sus causas principales?",
+            "references": ["El cambio climático es el aumento de temperaturas globales causado principalmente por emisiones humanas de gases de efecto invernadero (CO2, metano, N2O) desde la quema de combustibles fósiles, deforestación y ganadería intensiva. Estos gases atrapan calor en la atmósfera. Sus consecuencias incluyen aumento del nivel del mar, eventos climáticos extremos más frecuentes, pérdida de biodiversidad y disrupciones en la producción agrícola."]
+        },
+        {
+            "question": "¿Cuál fue el papel de Ada Lovelace en la historia de la informática?",
+            "references": ["Ada Lovelace fue una matemática pionera que escribió el primer algoritmo pensado para la Máquina Analítica de Babbage en 1843, ganándose el título de primer programador del mundo. Sus notas matemáticas demostraban una comprensión profunda de la lógica computacional y anticiparon conceptos modernos de programación como loops y funciones más de un siglo antes de que existieran computadoras electrónicas."]
+        },
+        {
+            "question": "¿Cuáles son los beneficios del ejercicio regular para la salud?",
+            "references": ["El ejercicio regular mejora la salud cardiovascular, fuerza muscular y flexibilidad, mientras reduce significativamente el riesgo de enfermedades crónicas como diabetes, hipertensión y ciertos cánceres. Psicológicamente, reduce estrés y depresión, mejora el estado de ánimo mediante endorfinas y fortalece la función cognitiva. Se recomienda 150 minutos de actividad aeróbica moderada por semana más ejercicios de resistencia."]
+        }
+    ]
 
     for sample in data_samples:
         row = {"question": sample["question"], "references": sample["references"]}
@@ -48,12 +69,23 @@ async def run_experiment(row):
     answer = response.get("answer", "")
     contexts = response.get("contexts", [])
     question = row["question"]
+    ground_truth = row["references"][0] if isinstance(row["references"], list) else row["references"]
 
     # Metricas
+    faithfulness_score = await faithfulness_metric.single_turn_ascore(
+        sample={
+            "question": question,
+            "answer": answer,
+            "contexts": contexts,
+            "ground_truth": ground_truth
+        }
+    )
 
     experiment_view = {
         **row,
         "response": answer,
+        "contexts": contexts,
+        "faithfulness": faithfulness_score,
         "log_file": response.get("logs", " "),
     }
 
