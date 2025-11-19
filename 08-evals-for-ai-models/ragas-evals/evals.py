@@ -30,16 +30,29 @@ from ragas.metrics.collections import Faithfulness
 sys.path.insert(0, str(Path(__file__).parent))
 from rag import default_rag_client
 
-# Load .env from parent directory
-env_path = Path(__file__).parent.parent / ".env"
-load_dotenv(dotenv_path=env_path)
-
-# Cargar API key desde variable de entorno
+# Cargar API key desde variable de entorno (prioridad)
 api_key = os.getenv("OPENAI_API_KEY")
 
+# Si no está en variable de entorno, buscar en archivo .env
 if not api_key:
-    print("Error: OPENAI_API_KEY not found in environment variables or .env file.")
-    print(f"Checked .env path: {env_path.resolve()}")
+    env_path = Path(__file__).parent / ".env"
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path)
+        api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    print("\n❌ Error: OPENAI_API_KEY no configurada\n")
+    print("Opciones para configurar:")
+    print("  1️⃣  Variable de entorno (RECOMENDADO):")
+    print("      PowerShell: $env:OPENAI_API_KEY = 'sk-proj-...'")
+    print("      Bash: export OPENAI_API_KEY='sk-proj-...'")
+    print()
+    print("  2️⃣  Archivo .env (Desarrollo local):")
+    print(f"      1. Copia: cp .env.example .env")
+    print(f"      2. Edita: .env y reemplaza con tu clave real")
+    print()
+    print("   Obtén tu clave en: https://platform.openai.com/api-keys")
+    print()
     sys.exit(1)
 
 openai_client = OpenAI(api_key=api_key)

@@ -11,56 +11,78 @@ from dotenv import load_dotenv
 def validate_api_key():
     """
     Valida la configuración de la OpenAI API key
+    Busca en: 1) Variable de entorno, 2) Archivo .env
     """
     
     print("\n" + "="*70)
     print("🔐 VALIDACIÓN DE OPENAI API KEY")
     print("="*70)
     
-    # Cargar .env
-    print("\n1️⃣  Cargando archivo .env...")
-    
-    if not os.path.exists(".env"):
-        print("   ❌ No existe archivo .env")
-        print("\n   📝 Crea un archivo .env con el siguiente contenido:")
-        print("   " + "-"*50)
-        print("   OPENAI_API_KEY=sk-proj-tu-clave-aqui")
-        print("   " + "-"*50)
-        print("\n   Obtén tu clave en: https://platform.openai.com/api-keys")
-        return False
-    
-    load_dotenv()
-    
-    print("   ✅ Archivo .env encontrado")
-    
-    # Verificar que existe la variable
-    print("\n2️⃣  Verificando OPENAI_API_KEY...")
+    # Intentar cargar desde variable de entorno primero
+    print("\n1️⃣  Buscando OPENAI_API_KEY...")
     
     api_key = os.getenv("OPENAI_API_KEY")
+    source = "Variable de entorno"
+    
+    if api_key:
+        print(f"   ✅ Encontrada en variable de entorno")
+    else:
+        print("   ℹ️  No encontrada en variable de entorno")
+        print("   🔍 Buscando en archivo .env...")
+        
+        # Intentar cargar desde .env
+        if os.path.exists(".env"):
+            load_dotenv()
+            api_key = os.getenv("OPENAI_API_KEY")
+            source = "Archivo .env"
+            
+            if api_key:
+                print("   ✅ Encontrada en archivo .env")
+            else:
+                print("   ❌ Archivo .env existe pero no contiene OPENAI_API_KEY")
+        else:
+            print("   ℹ️  Archivo .env no existe (es opcional)")
     
     if not api_key:
-        print("   ❌ OPENAI_API_KEY no está configurada")
-        print("\n   📝 Asegúrate que en .env tienes:")
-        print("   OPENAI_API_KEY=sk-proj-tu-clave-real")
+        print("\n" + "-"*70)
+        print("\n   📝 Configura tu API key con una de estas opciones:\n")
+        print("   OPCIÓN 1 - Variable de entorno (RECOMENDADO):")
+        print("   " + "-"*50)
+        print("   PowerShell:")
+        print("      $env:OPENAI_API_KEY = 'sk-proj-tu-clave'")
+        print("      python validate_api_key.py")
+        print()
+        print("   Bash/Linux/Mac:")
+        print("      export OPENAI_API_KEY='sk-proj-tu-clave'")
+        print("      python validate_api_key.py")
+        print()
+        print("   OPCIÓN 2 - Archivo .env (Desarrollo local):")
+        print("   " + "-"*50)
+        print("   1. Copia: cp .env.example .env")
+        print("   2. Edita: .env con tu clave real")
+        print("   3. Ejecuta: python validate_api_key.py")
+        print()
+        print("   Obtén tu clave en:")
+        print("   https://platform.openai.com/api-keys")
+        print()
         return False
     
-    if api_key == "sk-proj-tu-clave-aqui":
-        print("   ❌ OPENAI_API_KEY aún tiene valor de ejemplo")
-        print("\n   📝 Reemplaza con tu clave real:")
-        print("   OPENAI_API_KEY=sk-proj-tu-clave-real")
+    if api_key == "sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx":
+        print("\n   ❌ OPENAI_API_KEY aún tiene valor de ejemplo")
+        print("\n   📝 Reemplaza con tu clave real")
         return False
     
     if not api_key.startswith("sk-proj-"):
-        print("   ❌ OPENAI_API_KEY no tiene formato correcto")
+        print("\n   ❌ OPENAI_API_KEY no tiene formato correcto")
         print("   Debe empezar con: sk-proj-")
         print(f"   Actual: {api_key[:20]}...")
         return False
     
-    print("   ✅ OPENAI_API_KEY está configurada")
-    print(f"   Formato: {api_key[:20]}...")
+    print(f"\n   ✅ OPENAI_API_KEY válida (fuente: {source})")
+    print(f"   Formato: {api_key[:20]}...\n")
     
     # Probar conexión
-    print("\n3️⃣  Probando conexión con OpenAI API...")
+    print("2️⃣  Probando conexión con OpenAI API...")
     
     try:
         from openai import OpenAI
@@ -111,14 +133,14 @@ def main():
     if success:
         print("✨ ¡API KEY VALIDADA CORRECTAMENTE! ✨")
         print("="*70)
-        print("\n🚀 Ya puedes ejecutar: python solution_lab8.py")
+        print("\n🚀 Ya puedes ejecutar: python evals.py")
         return 0
     else:
         print("⚠️  CONFIGURACIÓN INCOMPLETA")
         print("="*70)
         print("\n⚙️  Pasos para resolver:")
-        print("   1. Edita el archivo .env")
-        print("   2. Asegúrate de tener una clave válida de OpenAI")
+        print("   1. Usa la variable de entorno: $env:OPENAI_API_KEY = '...'")
+        print("   2. O copia .env.example a .env y edítalo")
         print("   3. Ejecuta nuevamente este script para validar")
         return 1
 
