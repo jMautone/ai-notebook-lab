@@ -29,6 +29,7 @@ from ragas.metrics.collections import Faithfulness
 
 sys.path.insert(0, str(Path(__file__).parent))
 from rag import default_rag_client
+from custom_metrics import FormalidadMetric, CompletitudMetric, ClaridadMetric
 
 # Cargar API key desde variable de entorno (prioridad)
 api_key = os.getenv("OPENAI_API_KEY")
@@ -65,6 +66,11 @@ async_llm.temperature = 0
 async_llm.top_p = 1
 
 faithfulness_metric = Faithfulness(llm=async_llm)
+
+# Instanciar métricas personalizadas desde custom_metrics.py
+formalidad_metric = FormalidadMetric(name="formalidad_tono")
+completitud_metric = CompletitudMetric(name="completitud_respuesta")
+claridad_metric = ClaridadMetric(name="claridad_concision")
 
 
 def load_dataset():
@@ -114,19 +120,35 @@ async def run_experiment(row):
     question = row["question"]
     ground_truth = row["references"][0] if isinstance(row["references"], list) else row["references"]
 
-    # Metricas
+    # Métrica RAGAS: Faithfulness
     faithfulness_result = await faithfulness_metric.ascore(
         user_input=question,
         response=answer,
         retrieved_contexts=contexts
     )
     faithfulness_score = faithfulness_result.score if hasattr(faithfulness_result, 'score') else faithfulness_result
+    
+    # Métricas Personalizadas
+    # Preparar datos para métricas
+    metric_row = {
+        "user_input": question,
+        "response": answer,
+        "reference": ground_truth
+    }
+    
+    # Calcular métricas personalizadas
+    formalidad_score = await formalidad_metric._ascore(metric_row)
+    completitud_score = await completitud_metric._ascore(metric_row)
+    claridad_score = await claridad_metric._ascore(metric_row)
 
     experiment_view = {
         **row,
         "response": answer,
         "contexts": contexts,
         "faithfulness": faithfulness_score,
+        "formalidad": formalidad_score,
+        "completitud": completitud_score,
+        "claridad": claridad_score,
         "log_file": response.get("logs", " "),
     }
 
@@ -151,117 +173,215 @@ async def main():
     # Convertir a DataFrame
     df = experiment_results.to_pandas()
     
-    # Extraer scores numéricos
-    if "faithfulness" in df.columns:
+    # Extraer scores numéricos para todas las métricas
+    def extract_scores(df, column_name):
         scores = []
-        for score in df["faithfulness"]:
+        for score in df[column_name]:
             if hasattr(score, 'value'):
                 scores.append(score.value)
             else:
                 try:
                     scores.append(float(str(score).split('(value=')[1].split(')')[0]))
                 except:
-                    scores.append(0.0)
+                    try:
+                        scores.append(float(score))
+                    except:
+                        scores.append(0.0)
+        return scores
+    
+    # Extraer scores de todas las métricas
+    if "faithfulness" in df.columns:
+        faithfulness_scores = extract_scores(df, "faithfulness")
+        formalidad_scores = extract_scores(df, "formalidad")
+        completitud_scores = extract_scores(df, "completitud")
+        claridad_scores = extract_scores(df, "claridad")
         
         # Mostrar resultados en consola con formato atractivo
-        print("="*90)
-        print("📊 RESULTADOS DE FAITHFULNESS POR PREGUNTA")
-        print("="*90 + "\n")
+        print("="*100)
+        print("📊 RESULTADOS DE EVALUACIÓN - TODAS LAS MÉTRICAS")
+        print("="*100 + "\n")
         
         for i, (idx, row) in enumerate(df.iterrows(), 1):
-            question = row['question'][:65] + "..." if len(row['question']) > 65 else row['question']
-            score = scores[i-1]
+            question = row['question'][:60] + "..." if len(row['question']) > 60 else row['question']
             
-            # Icono basado en score
-            if score >= 0.9:
-                icon = "✅ EXCELENTE"
-            elif score >= 0.7:
-                icon = "⚠️  BUENO"
-            else:
-                icon = "❌ MEJORAR"
+            f_score = faithfulness_scores[i-1]
+            fo_score = formalidad_scores[i-1]
+            co_score = completitud_scores[i-1]
+            cl_score = claridad_scores[i-1]
             
-            bar_length = int(score * 20)
-            bar = "█" * bar_length + "░" * (20 - bar_length)
+            print(f"🔹 PREGUNTA {i}: {question}")
+            print(f"   {'─'*90}")
             
-            print(f"🔹 P{i}: {question}")
-            print(f"   Score: {score:.4f} [{bar}] {icon}\n")
+            # Mostrar cada métrica con barra visual
+            metrics = [
+                ("Faithfulness", f_score, "🎯"),
+                ("Formalidad", fo_score, "👔"),
+                ("Completitud", co_score, "📋"),
+                ("Claridad", cl_score, "💡")
+            ]
+            
+            for metric_name, score, icon in metrics:
+                bar_length = int(score * 20)
+                bar = "█" * bar_length + "░" * (20 - bar_length)
+                status = "✅" if score >= 0.8 else "⚠️" if score >= 0.6 else "❌"
+                print(f"   {icon} {metric_name:13s}: {score:.4f} [{bar}] {status}")
+            
+            # Promedio de todas las métricas
+            avg_score = (f_score + fo_score + co_score + cl_score) / 4
+            print(f"   {'─'*90}")
+            print(f"   📊 PROMEDIO GENERAL: {avg_score:.4f}\n")
         
-        # Estadísticas generales
-        avg_score = sum(scores) / len(scores)
-        max_score = max(scores)
-        min_score = min(scores)
-        std_score = pd.Series(scores).std()
+        # Estadísticas generales por métrica
+        print("="*100)
+        print("📈 ESTADÍSTICAS GENERALES POR MÉTRICA")
+        print("="*100 + "\n")
         
-        print("="*90)
-        print("📈 ESTADÍSTICAS GENERALES")
-        print("="*90)
-        print(f"\n  ✨ Score Promedio:        {avg_score:.4f}")
-        print(f"  🔝 Score Máximo:         {max_score:.4f}")
-        print(f"  🔻 Score Mínimo:         {min_score:.4f}")
-        print(f"  📊 Desviación Estándar:  {std_score:.4f}")
+        all_metrics = [
+            ("Faithfulness (RAGAS)", faithfulness_scores, "🎯"),
+            ("Formalidad del Tono", formalidad_scores, "👔"),
+            ("Completitud de Respuesta", completitud_scores, "📋"),
+            ("Claridad y Concisión", claridad_scores, "💡")
+        ]
         
-        excellent = sum(1 for s in scores if s >= 0.9)
-        good = sum(1 for s in scores if 0.7 <= s < 0.9)
-        needs_improvement = sum(1 for s in scores if s < 0.7)
+        for metric_name, scores, icon in all_metrics:
+            avg = sum(scores) / len(scores)
+            max_s = max(scores)
+            min_s = min(scores)
+            std = pd.Series(scores).std()
+            
+            excellent = sum(1 for s in scores if s >= 0.8)
+            good = sum(1 for s in scores if 0.6 <= s < 0.8)
+            needs_improvement = sum(1 for s in scores if s < 0.6)
+            
+            print(f"{icon} {metric_name}")
+            print(f"   {'─'*85}")
+            print(f"   Promedio: {avg:.4f} | Máximo: {max_s:.4f} | Mínimo: {min_s:.4f} | Desv. Est.: {std:.4f}")
+            print(f"   Distribución: ✅ Excelente (≥0.8): {excellent}/{len(scores)} | "
+                  f"⚠️ Bueno (0.6-0.8): {good}/{len(scores)} | "
+                  f"❌ Mejorar (<0.6): {needs_improvement}/{len(scores)}\n")
         
-        print(f"\n  Distribución de Scores:")
-        print(f"    ✅ Excelente (≥0.9):       {excellent}/{len(scores)} ({100*excellent/len(scores):.1f}%)")
-        print(f"    ⚠️  Bueno (0.7-0.9):        {good}/{len(scores)} ({100*good/len(scores):.1f}%)")
-        print(f"    ❌ Requiere mejora (<0.7):  {needs_improvement}/{len(scores)} ({100*needs_improvement/len(scores):.1f}%)")
+        # Promedio global de todas las métricas
+        all_scores_flat = faithfulness_scores + formalidad_scores + completitud_scores + claridad_scores
+        global_avg = sum(all_scores_flat) / len(all_scores_flat)
         
-        # Generar visualización
-        print("\n📊 Generando visualización...")
-        fig, axes = plt.subplots(2, 1, figsize=(14, 10))
-        fig.patch.set_facecolor('#f8f9fa')
+        print("="*100)
+        print(f"🌟 SCORE GLOBAL PROMEDIO (todas las métricas): {global_avg:.4f}")
+        print("="*100 + "\n")
         
-        # Gráfico 1: Barras de Faithfulness
-        colors = ['#2ecc71' if s >= 0.9 else '#f39c12' if s >= 0.7 else '#e74c3c' for s in scores]
-        bars = axes[0].bar(range(1, len(scores) + 1), scores, color=colors, edgecolor='#34495e', linewidth=2)
-        axes[0].axhline(y=avg_score, color='#3498db', linestyle='--', linewidth=2.5, label=f'Promedio: {avg_score:.3f}')
-        axes[0].set_xlabel('Número de Pregunta', fontsize=12, fontweight='bold')
-        axes[0].set_ylabel('Score Faithfulness', fontsize=12, fontweight='bold')
-        axes[0].set_title('📊 Evaluación de Faithfulness por Pregunta', fontsize=14, fontweight='bold', pad=20)
-        axes[0].set_ylim([0, 1.1])
-        axes[0].set_xticks(range(1, len(scores) + 1))
-        axes[0].grid(axis='y', alpha=0.3, linestyle='--')
-        axes[0].legend(fontsize=11, loc='lower right')
+        # Generar visualización completa
+        print("\n📊 Generando visualizaciones...")
         
-        # Agregar valores en las barras
-        for i, (bar, score) in enumerate(zip(bars, scores)):
-            height = bar.get_height()
-            axes[0].text(bar.get_x() + bar.get_width()/2., height + 0.02,
-                        f'{score:.3f}', ha='center', va='bottom', fontweight='bold', fontsize=10)
+        # ============================================================================
+        # GRÁFICO 1: Comparación de todas las métricas por pregunta
+        # ============================================================================
+        fig1, ax1 = plt.subplots(figsize=(16, 10))
+        fig1.patch.set_facecolor('#f8f9fa')
         
-        # Gráfico 2: Estadísticas
-        stats_text = f"""ESTADÍSTICAS DE FAITHFULNESS
-{'='*45}
-
-📈 Score Promedio:     {avg_score:.4f}
-🔝 Score Máximo:       {max_score:.4f}
-🔻 Score Mínimo:       {min_score:.4f}
-📊 Desv. Estándar:     {std_score:.4f}
-
-✅ Respuestas ≥ 0.9:   {excellent}/{len(scores)}
-⚠️  Respuestas 0.7-0.9: {good}/{len(scores)}
-❌ Respuestas < 0.7:   {needs_improvement}/{len(scores)}
-
-Interpretación:
-• Score ≥ 0.9: Excelente (muy fiel)
-• Score 0.7-0.9: Bueno (mayormente fiel)
-• Score < 0.7: Requiere mejora"""
+        x = range(1, len(faithfulness_scores) + 1)
+        width = 0.2
         
-        axes[1].text(0.05, 0.95, stats_text, transform=axes[1].transAxes,
-                    fontsize=11, verticalalignment='top', fontfamily='monospace',
-                    bbox=dict(boxstyle='round', facecolor='#ecf0f1', alpha=0.8, pad=1))
-        axes[1].axis('off')
+        bars1 = ax1.bar([i - 1.5*width for i in x], faithfulness_scores, width, 
+                        label='Faithfulness', color='#3498db', edgecolor='#2c3e50', linewidth=1.5)
+        bars2 = ax1.bar([i - 0.5*width for i in x], formalidad_scores, width,
+                        label='Formalidad', color='#9b59b6', edgecolor='#2c3e50', linewidth=1.5)
+        bars3 = ax1.bar([i + 0.5*width for i in x], completitud_scores, width,
+                        label='Completitud', color='#2ecc71', edgecolor='#2c3e50', linewidth=1.5)
+        bars4 = ax1.bar([i + 1.5*width for i in x], claridad_scores, width,
+                        label='Claridad', color='#f39c12', edgecolor='#2c3e50', linewidth=1.5)
+        
+        # Línea de promedio global
+        ax1.axhline(y=global_avg, color='#e74c3c', linestyle='--', linewidth=2.5, 
+                    label=f'Promedio Global: {global_avg:.3f}', alpha=0.7)
+        
+        ax1.set_xlabel('Número de Pregunta', fontsize=13, fontweight='bold')
+        ax1.set_ylabel('Score', fontsize=13, fontweight='bold')
+        ax1.set_title('📊 Comparación de Métricas por Pregunta', fontsize=16, fontweight='bold', pad=20)
+        ax1.set_ylim([0, 1.1])
+        ax1.set_xticks(x)
+        ax1.grid(axis='y', alpha=0.3, linestyle='--')
+        ax1.legend(fontsize=11, loc='upper right', framealpha=0.9)
         
         plt.tight_layout()
+        img_path1 = Path(".") / "experiments" / "metricas_comparacion.png"
+        img_path1.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(img_path1, dpi=300, bbox_inches='tight', facecolor='#f8f9fa')
+        print(f"✅ Gráfico de comparación guardado en: {img_path1.resolve()}")
+        plt.close()
         
-        # Guardar imagen
-        img_path = Path(".") / "experiments" / "faithfulness_visualization.png"
-        img_path.parent.mkdir(parents=True, exist_ok=True)
-        plt.savefig(img_path, dpi=300, bbox_inches='tight', facecolor='#f8f9fa')
-        print(f"✅ Visualización guardada en: {img_path.resolve()}")
+        # ============================================================================
+        # GRÁFICO 2: Promedios por métrica (gráfico de barras horizontal)
+        # ============================================================================
+        fig2, ax2 = plt.subplots(figsize=(12, 8))
+        fig2.patch.set_facecolor('#f8f9fa')
+        
+        metrics_names = ['Faithfulness\n(RAGAS)', 'Formalidad\ndel Tono', 
+                        'Completitud\nde Respuesta', 'Claridad y\nConcisión']
+        metrics_avgs = [
+            sum(faithfulness_scores) / len(faithfulness_scores),
+            sum(formalidad_scores) / len(formalidad_scores),
+            sum(completitud_scores) / len(completitud_scores),
+            sum(claridad_scores) / len(claridad_scores)
+        ]
+        colors_avg = ['#3498db', '#9b59b6', '#2ecc71', '#f39c12']
+        
+        bars = ax2.barh(metrics_names, metrics_avgs, color=colors_avg, 
+                       edgecolor='#2c3e50', linewidth=2)
+        
+        # Agregar valores en las barras
+        for i, (bar, val) in enumerate(zip(bars, metrics_avgs)):
+            width = bar.get_width()
+            ax2.text(width + 0.02, bar.get_y() + bar.get_height()/2,
+                    f'{val:.4f}', ha='left', va='center', fontweight='bold', fontsize=12)
+        
+        ax2.set_xlabel('Score Promedio', fontsize=13, fontweight='bold')
+        ax2.set_title('📈 Promedio por Métrica', fontsize=16, fontweight='bold', pad=20)
+        ax2.set_xlim([0, 1.1])
+        ax2.grid(axis='x', alpha=0.3, linestyle='--')
+        
+        plt.tight_layout()
+        img_path2 = Path(".") / "experiments" / "metricas_promedios.png"
+        plt.savefig(img_path2, dpi=300, bbox_inches='tight', facecolor='#f8f9fa')
+        print(f"✅ Gráfico de promedios guardado en: {img_path2.resolve()}")
+        plt.close()
+        
+        # ============================================================================
+        # GRÁFICO 3: Heatmap de scores
+        # ============================================================================
+        fig3, ax3 = plt.subplots(figsize=(14, 8))
+        fig3.patch.set_facecolor('#f8f9fa')
+        
+        # Crear matriz de datos
+        data_matrix = [
+            faithfulness_scores,
+            formalidad_scores,
+            completitud_scores,
+            claridad_scores
+        ]
+        
+        im = ax3.imshow(data_matrix, cmap='RdYlGn', aspect='auto', vmin=0, vmax=1)
+        
+        # Configurar ejes
+        ax3.set_xticks(range(len(faithfulness_scores)))
+        ax3.set_xticklabels([f'P{i+1}' for i in range(len(faithfulness_scores))], fontsize=11)
+        ax3.set_yticks(range(4))
+        ax3.set_yticklabels(['Faithfulness', 'Formalidad', 'Completitud', 'Claridad'], fontsize=12)
+        
+        # Agregar valores en celdas
+        for i in range(4):
+            for j in range(len(faithfulness_scores)):
+                text = ax3.text(j, i, f'{data_matrix[i][j]:.2f}',
+                              ha="center", va="center", color="black", fontweight='bold', fontsize=10)
+        
+        ax3.set_title('🗺️ Heatmap de Scores por Pregunta y Métrica', fontsize=16, fontweight='bold', pad=20)
+        
+        # Barra de color
+        cbar = plt.colorbar(im, ax=ax3)
+        cbar.set_label('Score', fontsize=12, fontweight='bold')
+        
+        plt.tight_layout()
+        img_path3 = Path(".") / "experiments" / "metricas_heatmap.png"
+        plt.savefig(img_path3, dpi=300, bbox_inches='tight', facecolor='#f8f9fa')
+        print(f"✅ Heatmap guardado en: {img_path3.resolve()}")
         plt.close()
         
         print("\n" + "="*90)
