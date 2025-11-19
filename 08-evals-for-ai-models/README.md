@@ -1,236 +1,163 @@
-# RAGAS Evals - Sistema de Evaluación RAG
+# 🧪 Lab 8: Sistema de Evaluación de Modelos de IA con RAGAS
 
-Este directorio contiene la implementación del sistema de evaluación de RAG (Retrieval-Augmented Generation) usando RAGAS framework con la métrica de **Faithfulness**.
+Sistema completo de evaluación de respuestas generadas por IA que implementa los 3 ejercicios del Lab 8.
 
-## 📋 Descripción
+## ✅ Solución Implementada
 
-El sistema evalúa la **fidelidad** de las respuestas generadas por el pipeline RAG, verificando si están basadas correctamente en los contextos recuperados sin contener alucinaciones.
+- **Ejercicio 1**: Dataset con 5 pares pregunta-contexto-respuesta
+- **Ejercicio 2**: Métrica Faithfulness de RAGAS + visualizaciones
+- **Ejercicio 3**: 3 métricas personalizadas (Formalidad, Completitud, Claridad)
+
+---
 
 ## 🚀 Inicio Rápido
 
-### 1️⃣ Configurar API Key
-
-**Opción A: Usar archivo `.env` (Recomendado)**
+### 1. Instalar Dependencias
 
 ```bash
-# Copia el archivo de ejemplo
-cp .env.example .env
-
-# Edita .env y reemplaza con tu clave real
-# OPENAI_API_KEY=sk-proj-tu-clave-aqui
+cd 08-evals-for-ai-models/ragas-evals
+pip install -r requirements.txt
 ```
 
-**Opción B: Variable de entorno (PowerShell)**
+### 2. Configurar API Key
 
+**Opción A: Archivo .env (Recomendado)**
+```bash
+cp .env.example .env
+# Editar .env y agregar: OPENAI_API_KEY=sk-proj-tu-clave-aqui
+```
+
+**Opción B: Variable de entorno**
 ```powershell
 $env:OPENAI_API_KEY = "sk-proj-tu-clave-aqui"
-python evals.py
 ```
 
-### 2️⃣ Ejecutar la Evaluación
+Obtener clave: https://platform.openai.com/api-keys
+
+### 3. Ejecutar
 
 ```bash
 python evals.py
 ```
 
-### 3️⃣ Ver Resultados
+**Salida**: Resultados en consola + 3 gráficos PNG en `experiments/` + CSV con scores
 
-Los resultados se guardan en:
-- **CSV**: `experiments/*.csv` (datos tabulares)
-- **Imagen**: `experiments/faithfulness_visualization.png` (gráfico visual)
-- **Logs**: `logs/rag_run_*.json` (trazas detalladas del RAG)
+---
 
-## 📂 Estructura de Archivos
+## 📊 Resultados
+
+**Archivos generados:**
+```
+experiments/
+├── metricas_comparacion.png  # Barras por pregunta
+├── metricas_promedios.png    # Promedios por métrica
+├── metricas_heatmap.png      # Mapa de calor
+└── *.csv                     # Scores tabulados
+```
+
+**Métricas calculadas:**
+- **Faithfulness** (RAGAS): Fidelidad al contexto
+- **Formalidad**: Tono profesional
+- **Completitud**: Cobertura de conceptos
+- **Claridad**: Legibilidad y concisión
+
+**Interpretación de scores:**
+- ≥ 0.8: ✅ Excelente
+- 0.6-0.8: ⚠️ Bueno
+- < 0.6: ❌ Mejorar
+
+---
+
+## 📂 Estructura del Proyecto
 
 ```
 ragas-evals/
-├── .env                          # ⚠️  NO COMMITEAR: Tu clave API (gitignore)
-├── .env.example                  # ✅ Ejemplo de configuración
-├── .gitignore                    # Archivos a ignorar en Git
-├── evals.py                      # Script principal de evaluación
-├── rag.py                        # Implementación del sistema RAG
-├── requirements.txt              # Dependencias Python
-├── README.md                     # Este archivo
+├── evals.py              # 🎯 Script principal (EJECUTAR ESTE)
+├── custom_metrics.py     # 3 métricas personalizadas (Ejercicio 3)
+├── rag.py               # Sistema RAG + contextos
+├── requirements.txt     # Dependencias
+├── .env                 # Tu API key (crear)
 │
-├── datasets/                     # Datasets generados
-│   └── test_dataset.csv
-│
-├── experiments/                  # Resultados de evaluaciones
-│   ├── *.csv                    # Resultados en CSV
-│   └── faithfulness_visualization.png  # Gráfico
-│
-├── logs/                        # Trazas de ejecución
-│   └── rag_run_*.json           # Logs detallados del RAG
-│
-└── __pycache__/                 # Caché de Python (ignorado)
+├── experiments/         # 📊 Resultados (PNG + CSV)
+├── logs/               # 📋 Logs de ejecución
+└── datasets/           # 💾 Dataset guardado
 ```
 
-## 🔑 Configuración de API Key
+---
 
-### Obtener tu clave de OpenAI
+## 🏗️ Arquitectura
 
-1. **Ve a**: https://platform.openai.com/api-keys
-2. **Inicia sesión** con tu cuenta de OpenAI
-3. **Haz clic** en "Create new secret key"
-4. **Copia** la clave completa
-
-### Ejemplo de archivo `.env`:
-
-```env
-# RAGAS EVALS Configuration
-OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+**Flujo de ejecución:**
+```
+evals.py
+  ├─> load_dataset()          → 5 preguntas (Ejercicio 1)
+  ├─> run_experiment()        → Por cada pregunta:
+  │    ├─> rag.query()        → Genera respuesta con GPT-4o-mini
+  │    ├─> Faithfulness       → Score (Ejercicio 2)
+  │    ├─> FormalidadMetric   → Score (Ejercicio 3A)
+  │    ├─> CompletitudMetric  → Score (Ejercicio 3B)
+  │    └─> ClaridadMetric     → Score (Ejercicio 3C)
+  └─> main()                  → Visualiza + exporta
 ```
 
-⚠️ **IMPORTANTE**: Nunca compartas tu API key públicamente. El archivo `.env` está en `.gitignore`.
+**Componentes:**
 
-## 📊 Ejecutar Evaluación
+- **`evals.py`** - Script Principal
+  - **Propósito**: Orquestador del sistema de evaluación completo
+  - **Funciones**: Define dataset (Ejercicio 1), ejecuta experimento RAGAS, calcula 4 métricas por pregunta, genera 3 visualizaciones profesionales, exporta a CSV/PNG
+  - **Flujo**: `load_dataset()` → `run_experiment()` (llama RAG + métricas) → `main()` (visualiza + guarda)
 
+- **`custom_metrics.py`** - Métricas Personalizadas (Ejercicio 3)
+  - **Propósito**: 3 métricas personalizadas que heredan de `DiscreteMetric`
+  - **FormalidadMetric** (3A): Evalúa tono profesional, detecta emojis, coloquialismos, contracciones, exclamaciones excesivas
+  - **CompletitudMetric** (3B): Evalúa cobertura de conceptos, verifica preguntas múltiples, longitud, desarrollo de ideas, compara con referencia
+  - **ClaridadMetric** (3C): Evalúa legibilidad, analiza diversidad léxica, longitud de oraciones, complejidad, repeticiones, uso de conectores
+  - **Arquitectura**: Todas retornan score 0.0-1.0 usando análisis determinístico (regex, conteos - sin LLMs)
+
+- **`rag.py`** - Sistema RAG
+  - **Propósito**: Sistema Retrieval-Augmented Generation que genera las respuestas a evaluar
+  - **DOCUMENTS**: 5 documentos con contexto (Revolución Industrial, fotosíntesis, cambio climático, Ada Lovelace, ejercicio)
+  - **SimpleKeywordRetriever**: Recupera documentos por coincidencia de palabras clave
+  - **ExampleRAG**: Pipeline completo (`retrieve()` → `generate()` con GPT-4o-mini)
+  - **Logging**: Guarda trazas JSON en `logs/` con timestamps
+
+---
+
+## 🔧 Solución de Problemas
+
+**Error: API key no encontrada**
 ```bash
+# Verificar .env
+cat .env
+
+# O usar variable de entorno
+$env:OPENAI_API_KEY = "sk-proj-..."
 python evals.py
 ```
 
-**Salida esperada:**
-
-```
-==========================================================================================
-🚀 INICIANDO EVALUACIÓN CON RAGAS - FAITHFULNESS METRIC
-==========================================================================================
-
-📚 Cargando dataset...
-✅ Dataset cargado: test_dataset con 5 muestras
-
-🔄 Ejecutando experimento...
-Running experiment: 100%|██████████████████████████████| 5/5 [00:50<00:00, 10.00s/it]
-
-✅ Experimento completado!
-
-==========================================================================================
-📊 RESULTADOS DE FAITHFULNESS POR PREGUNTA
-==========================================================================================
-
-🔹 P1: ¿Qué es el cambio climático y cuáles son sus causas principales?
-   Score: 1.0000 [████████████████████] ✅ EXCELENTE
-
-...
-
-📈 ESTADÍSTICAS GENERALES
-==========================================================================================
-
-  ✨ Score Promedio:        1.0000
-  🔝 Score Máximo:         1.0000
-  🔻 Score Mínimo:         1.0000
-  📊 Desviación Estándar:  0.0000
-
-==========================================================================================
-✨ ¡EVALUACIÓN COMPLETADA! ✨
-==========================================================================================
-
-💾 Resultados guardados en: experiments/jovial_jobs.csv
-```
-
-## 📈 Interpretación de Scores
-
-| Score | Nivel | Significado |
-|-------|-------|------------|
-| 1.0 - 0.9 | ✅ EXCELENTE | Respuesta 100% fiel al contexto, sin alucinaciones |
-| 0.9 - 0.7 | ⚠️ BUENO | Respuesta mayormente fiel con mínimos desvíos |
-| 0.7 - 0.5 | ⚠️ MEJORABLE | Mezcla información del contexto con afirmaciones externas |
-| < 0.5 | ❌ NECESITA MEJORA | Respuesta principalmente alucinada o no verificable |
-
-## 🏗️ Componentes Principales
-
-### `rag.py`
-- Implementación del sistema RAG (Retrieval-Augmented Generation)
-- Retriever basado en búsqueda de palabras clave
-- Generador de respuestas usando GPT-4o-mini
-- Sistema de trazas (logs) detallado
-
-### `evals.py`
-- Carga del dataset de prueba
-- Ejecución de experimento RAGAS
-- Cálculo de métrica Faithfulness
-- Visualización de resultados
-- Exportación de resultados a CSV e imagen
-
-### Dataset
-- 5 pares de (pregunta, contexto, respuesta referencia)
-- Temas: Historia, Biología, Ciencia, Tecnología, Salud
-- Contextos informativos y precisos
-
-## 🔧 Requisitos
-
-- Python 3.8+
-- OpenAI API key
-- Dependencias en `requirements.txt`:
-  ```
-  openai>=1.0.0
-  pandas>=2.0.0
-  matplotlib>=3.8.0
-  python-dotenv>=1.0.0
-  ragas>=0.1.0
-  ```
-
-## 🐛 Solución de Problemas
-
-### Error: `OPENAI_API_KEY not found`
-
-**Solución:**
-```bash
-# Verifica que .env existe en la carpeta ragas-evals
-# Y contiene: OPENAI_API_KEY=sk-proj-...
-ls -la .env
-```
-
-### Error: `ModuleNotFoundError: No module named 'ragas'`
-
-**Solución:**
+**Error: Módulo no encontrado**
 ```bash
 pip install -r requirements.txt
 ```
 
-### La imagen tiene emojis extraños
-
-**Causa:** Matplotlib no soporta todos los emojis nativamente
-**Impacto:** Cosmético (los datos y gráfico funcionan correctamente)
-
-## 📝 Archivos Generados
-
-Después de ejecutar `python evals.py`:
-
-### Resultados CSV
-- **Ubicación**: `experiments/<nombre_aleatorio>.csv`
-- **Contenido**: Preguntas, respuestas, contextos, scores de Faithfulness
-- **Uso**: Análisis adicional en Excel, pandas, etc.
-
-### Visualización PNG
-- **Ubicación**: `experiments/faithfulness_visualization.png`
-- **Contenido**: Gráfico de barras + estadísticas
-- **Resolución**: 300 DPI (imprimible)
-
-### Logs RAG
-- **Ubicación**: `logs/rag_run_*.json`
-- **Contenido**: Trazas detalladas de cada consulta (retrieval, generación, tiempos)
-- **Uso**: Debugging y análisis de rendimiento
-
-## 🎯 Próximos Pasos
-
-1. **Optimizar Retriever**: Mejorar la búsqueda de documentos relevantes
-2. **Agregar más métricas**: Completitud, Relevancia, etc.
-3. **Expandir Dataset**: Aumentar a 10+ pares de preguntas
-4. **Comparar Modelos**: Evaluar diferentes LLMs (GPT-4, Claude, etc.)
-5. **Fine-tuning**: Ajustar parámetros del RAG para mejor rendimiento
-
-## 📚 Referencias
-
-- [RAGAS Documentation](https://docs.ragas.io/)
-- [OpenAI API](https://platform.openai.com/docs/api-reference)
-- [RAG Pattern](https://research.ibm.com/blog/retrieval-augmented-generation-rag)
-
-## 📧 Soporte
-
-Para problemas o preguntas, consulta la documentación de RAGAS o contacta al equipo de desarrollo.
+**Error: multiprocess en Python 3.12**
+- Ya solucionado en código (parche de compatibilidad)
 
 ---
 
-**Última actualización**: Noviembre 2025  
-**Estado**: ✅ Funcional y listo para producción
+## 📈 Próximos Pasos
+
+1. **Expandir dataset**: 10-20 preguntas
+2. **Optimizar RAG**: Embeddings para retrieval semántico
+3. **Más métricas**: Answer Relevancy, Context Precision
+4. **Comparar modelos**: GPT-4, Claude, Llama
+
+---
+
+## 📚 Referencias
+
+- RAGAS: https://docs.ragas.io/
+- OpenAI API: https://platform.openai.com/docs/
+- RAG Pattern: https://research.ibm.com/blog/retrieval-augmented-generation-rag
+
+
