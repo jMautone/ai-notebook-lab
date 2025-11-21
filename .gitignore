@@ -72,8 +72,3 @@ logs/
 .mypy_cache/
 .coverage
 htmlcov/
-
-# Archivos específicos del laboratorio
-# Lab 6 - MCP credentials
-06-model-context-protocol/.env
-06-model-context-protocol/**/.env
