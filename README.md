@@ -54,9 +54,14 @@ ai-notebook-lab/
 │   ├── cloud-deployment/          # Despliegue en FastMCP Cloud
 │   └── openai-integration/        # Integración OpenAI + MCP
 │
-└── 📂 07-custom-mcp-servers/
-    ├── custom-fastmcp-server/     # Servidor MCP personalizado con FastMCP
-    └── README.md                  # Documentación e integración MCP
+├── 📂 07-custom-mcp-servers/
+│   └── custom-fastmcp-server/     # Servidor MCP personalizado con FastMCP
+│
+└── 📂 08-evals-for-ai-models/
+    └── ragas-evals/               # Sistema de evaluación con RAGAS
+        ├── evals.py               # Script principal de evaluación
+        ├── custom_metrics.py      # Métricas personalizadas
+        └── rag.py                 # Sistema RAG para testing
 ```
 
 ---
@@ -188,6 +193,33 @@ Crea e integra servidores Model Context Protocol personalizados en FastMCP Cloud
 
 ---
 
+### 🧪 Lab 8: Evals for AI Models
+**Evaluación de Modelos de IA con RAGAS**
+
+Implementa un sistema completo de evaluación de calidad de respuestas generadas por IA:
+
+- 🔹 Construcción de datasets de evaluación con contexto
+- 🔹 Métricas estándar de RAGAS (Faithfulness, Answer Relevancy)
+- 🔹 Desarrollo de métricas personalizadas (Formalidad, Completitud, Claridad)
+- 🔹 Visualización de resultados y análisis comparativo
+- 🔹 Sistema RAG integrado para generación de respuestas
+
+#### 📂 Ejercicios
+- **Ejercicio 1**: Crear dataset propio con mínimo 5 pares (pregunta, contexto, respuesta de referencia)
+- **Ejercicio 2**: Evaluar con métrica Faithfulness de RAGAS
+- **Ejercicio 3**: Implementar 3 métricas personalizadas:
+  - **Formalidad**: Evalúa tono profesional sin coloquialismos
+  - **Completitud**: Mide cobertura de conceptos y desarrollo de ideas
+  - **Claridad**: Analiza legibilidad, concisión y estructura
+
+**Tecnologías**: RAGAS, OpenAI GPT-4o-mini, Matplotlib, Pandas, logging estructurado
+
+**Salida**: Gráficos PNG (comparación, promedios, heatmap) + CSV + logs JSON
+
+**⚠️ Requiere**: OpenAI API Key
+
+---
+
 ### Core Libraries
 - **Python 3.8+**: Lenguaje principal
 - **LangChain**: Framework para aplicaciones LLM
@@ -262,6 +294,7 @@ Crea e integra servidores Model Context Protocol personalizados en FastMCP Cloud
 - Dirígete directamente a **Lab 5** (Advanced RAG)
 - Explora **Lab 6** (MCP) para arquitecturas distribuidas
 - Crea servidores personalizados con **Lab 7** (Custom MCP Servers)
+- Evalúa calidad de respuestas con **Lab 8** (Evals for AI Models)
 - Experimenta con `openai-integration-extra/` para features avanzadas
 
 ---
@@ -275,6 +308,7 @@ Al completar estos laboratorios, serás capaz de:
 - ✅ Crear agentes de IA autónomos con herramientas
 - ✅ Desplegar arquitecturas MCP distribuidas
 - ✅ Integrar múltiples modelos y servicios de IA
+- ✅ Evaluar y optimizar calidad de respuestas con métricas estándar y personalizadas
 - ✅ Optimizar performance y costos de aplicaciones IA
 
 ---
