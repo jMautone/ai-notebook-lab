@@ -8,7 +8,7 @@ load_dotenv()
 langfuse = Langfuse(
     public_key=os.environ.get("LANGFUSE_PUBLIC_KEY"),
     secret_key=os.environ.get("LANGFUSE_SECRET_KEY"),
-    base_url=os.environ.get("LANGFUSE_HOST")
+    base_url=os.environ.get("LANGFUSE_BASE_URL")
 )
 
 client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))

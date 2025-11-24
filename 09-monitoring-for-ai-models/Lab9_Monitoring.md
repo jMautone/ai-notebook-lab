@@ -49,7 +49,7 @@ import os
 # Configuración de entorno (o usar .env)
 # os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-..."
 # os.environ["LANGFUSE_SECRET_KEY"] = "sk-..."
-# os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"
+# os.environ["LANGFUSE_BASE_URL"] = "https://cloud.langfuse.com"
 
 # Tu código de generación aquí
 completion = openai.chat.completions.create(
