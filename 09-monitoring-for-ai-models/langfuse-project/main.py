@@ -1,13 +1,17 @@
 from langfuse import Langfuse
 from langfuse.openai import openai
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 langfuse = Langfuse(
-    public_key="",
-    secret_key="",
-    base_url=""
+    public_key=os.environ.get("LANGFUSE_PUBLIC_KEY"),
+    secret_key=os.environ.get("LANGFUSE_SECRET_KEY"),
+    base_url=os.environ.get("LANGFUSE_HOST")
 )
 
-client = openai.OpenAI(api_key="")
+client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 prompts = [
     "Explica RAG en dos frases.",
