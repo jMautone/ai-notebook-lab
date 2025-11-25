@@ -57,11 +57,18 @@ ai-notebook-lab/
 ├── 📂 07-custom-mcp-servers/
 │   └── custom-fastmcp-server/     # Servidor MCP personalizado con FastMCP
 │
-└── 📂 08-evals-for-ai-models/
-    └── ragas-evals/               # Sistema de evaluación con RAGAS
-        ├── evals.py               # Script principal de evaluación
-        ├── custom_metrics.py      # Métricas personalizadas
-        └── rag.py                 # Sistema RAG para testing
+├── 📂 08-evals-for-ai-models/
+│   └── ragas-evals/               # Sistema de evaluación con RAGAS
+│       ├── evals.py               # Script principal de evaluación
+│       ├── custom_metrics.py      # Métricas personalizadas
+│       └── rag.py                 # Sistema RAG para testing
+│
+└── 📂 09-monitoring-for-ai-models/
+    └── langfuse-project/          # Monitoreo con Langfuse
+        ├── basics/                # Instrumentación básica
+        ├── optimization/          # Optimización de prompts
+        ├── prompt_management/     # Gestión de prompts y A/B testing
+        └── rag_evaluation/        # Evaluación RAG con RAGAS + Langfuse
 ```
 
 ---
@@ -178,12 +185,6 @@ Crea e integra servidores Model Context Protocol personalizados en FastMCP Cloud
 - 🔹 Integración de Notion MCP desde el IDE
 - 🔹 Arquitectura cliente-servidor en la nube
 
-#### 📂 Estructura
-- **custom-fastmcp-server/**: Servidor MCP alojado en FastMCP Cloud
-  - `server.py` - Implementación del servidor con herramientas
-  - Herramientas: análisis de texto, info del sistema, operaciones de archivos, generación de datos
-- **Integración IDE**: Configuración centralizada en `.vscode/mcp.json` para Notion MCP y FastMCP personalizados
-
 **Tecnologías**: FastMCP, FastMCP Cloud, MCP Protocol, Notion API, VS Code MCP
 
 **🎯 Requisitos**: 
@@ -204,19 +205,31 @@ Implementa un sistema completo de evaluación de calidad de respuestas generadas
 - 🔹 Visualización de resultados y análisis comparativo
 - 🔹 Sistema RAG integrado para generación de respuestas
 
-#### 📂 Ejercicios
-- **Ejercicio 1**: Crear dataset propio con mínimo 5 pares (pregunta, contexto, respuesta de referencia)
-- **Ejercicio 2**: Evaluar con métrica Faithfulness de RAGAS
-- **Ejercicio 3**: Implementar 3 métricas personalizadas:
-  - **Formalidad**: Evalúa tono profesional sin coloquialismos
-  - **Completitud**: Mide cobertura de conceptos y desarrollo de ideas
-  - **Claridad**: Analiza legibilidad, concisión y estructura
-
 **Tecnologías**: RAGAS, OpenAI GPT-4o-mini, Matplotlib, Pandas, logging estructurado
 
 **Salida**: Gráficos PNG (comparación, promedios, heatmap) + CSV + logs JSON
 
 **⚠️ Requiere**: OpenAI API Key
+
+---
+
+### 📊 Lab 9: Monitoring for AI Models
+**Monitoreo de Aplicaciones LLM con Langfuse**
+
+Implementa observabilidad completa para aplicaciones de IA usando Langfuse como plataforma de monitoreo:
+
+- 🔹 Instrumentación de trazas para llamadas a LLM
+- 🔹 Análisis de métricas: latencia, tokens y costos
+- 🔹 Optimización de prompts con comparativas pre/post
+- 🔹 Gestión centralizada de prompts y versionado
+- 🔹 A/B Testing de prompts con análisis estadístico
+- 🔹 Integración de métricas RAGAS en dashboard de Langfuse
+
+**Tecnologías**: Langfuse, OpenAI API, RAGAS, trazado manual con spans
+
+**📊 Dashboard**: Resultados visibles en https://cloud.langfuse.com
+
+**⚠️ Requiere**: OpenAI API Key + Langfuse API Keys (cuenta gratuita)
 
 ---
 
@@ -277,9 +290,14 @@ Implementa un sistema completo de evaluación de calidad de respuestas generadas
   - Agregar método de pago y generar API key
   - Requerida desde Lab 4 en adelante
 
-- **FastMCP API Key** (Lab 6):
+- **FastMCP API Key** (Lab 6-7):
   - Crear cuenta en [gofastmcp.com](https://gofastmcp.com)
   - Generar API key para despliegue en la nube
+
+- **Langfuse API Keys** (Lab 9):
+  - Crear cuenta en [cloud.langfuse.com](https://cloud.langfuse.com)
+  - Generar `public_key` y `secret_key` desde Settings → API Keys
+  - Tier gratuito disponible para desarrollo y testing
 
 ---
 
@@ -295,6 +313,7 @@ Implementa un sistema completo de evaluación de calidad de respuestas generadas
 - Explora **Lab 6** (MCP) para arquitecturas distribuidas
 - Crea servidores personalizados con **Lab 7** (Custom MCP Servers)
 - Evalúa calidad de respuestas con **Lab 8** (Evals for AI Models)
+- Monitorea aplicaciones LLM con **Lab 9** (Monitoring con Langfuse)
 - Experimenta con `openai-integration-extra/` para features avanzadas
 
 ---
@@ -309,6 +328,8 @@ Al completar estos laboratorios, serás capaz de:
 - ✅ Desplegar arquitecturas MCP distribuidas
 - ✅ Integrar múltiples modelos y servicios de IA
 - ✅ Evaluar y optimizar calidad de respuestas con métricas estándar y personalizadas
+- ✅ Implementar observabilidad y monitoreo de aplicaciones LLM
+- ✅ Realizar A/B testing y gestión centralizada de prompts
 - ✅ Optimizar performance y costos de aplicaciones IA
 
 ---
