@@ -1,14 +1,20 @@
-from langfuse import get_client
-from langfuse.openai import openai
+from langfuse import Langfuse
+from openai import OpenAI  # Sin auto-instrumentación para evitar traces duplicados
 import os
 from dotenv import load_dotenv
 import time
 
 load_dotenv()
 
-langfuse = get_client()
+# Cliente Langfuse
+langfuse = Langfuse(
+    public_key=os.environ.get("LANGFUSE_PUBLIC_KEY"),
+    secret_key=os.environ.get("LANGFUSE_SECRET_KEY"),
+    base_url=os.environ.get("LANGFUSE_BASE_URL")
+)
 
-client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# Cliente OpenAI sin instrumentación automática
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 def run_inefficient_prompt():
     """
@@ -33,7 +39,8 @@ def run_inefficient_prompt():
     )
     
     # Crear generation dentro del span
-    generation = span.start_generation(
+    generation = span.start_observation(
+        as_type="generation",
         name="inefficient_generation",
         model="gpt-4o-mini",
         input=prompt
@@ -94,7 +101,8 @@ def run_optimized_prompt():
     )
     
     # Crear generation dentro del span
-    generation = span.start_generation(
+    generation = span.start_observation(
+        as_type="generation",
         name="optimized_generation",
         model="gpt-4o-mini",
         input=prompt

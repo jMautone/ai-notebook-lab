@@ -1,5 +1,5 @@
 from langfuse import Langfuse
-from langfuse.openai import openai
+from openai import OpenAI  # Sin auto-instrumentación
 import os
 from dotenv import load_dotenv
 
@@ -11,8 +11,14 @@ langfuse = Langfuse(
     base_url=os.environ.get("LANGFUSE_BASE_URL")
 )
 
-client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# Cliente OpenAI (no se usa en este script, pero se mantiene por consistencia)
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
+print("\n" + "="*50)
+print("   🚀 Creación de Prompts en Langfuse")
+print("="*50 + "\n")
+
+print("⏳ Creando prompt 'story_summarization'...")
 langfuse.create_prompt(
     name="story_summarization",
     prompt="Extract the key information from this text and return it in JSON format. Use the following schema: {{json_schema}}",
@@ -28,33 +34,57 @@ langfuse.create_prompt(
             "critic_score": "number (between 0 bad and 10 exceptional)"
         }
     },
-    labels=["production"]
-);
+    labels=["production"],
+    tags=["type:summarization", "prompt-management"]
+)
+print("✅ Prompt 'story_summarization' creado.")
 
-
+print("⏳ Creando prompt 'explicacion_academica'...")
 langfuse.create_prompt(
     name="explicacion_academica",
     prompt="Responde siempre en un tono académico y formal. Explica los conceptos con precisión, utiliza terminología técnica cuando sea apropiado y estructura la respuesta en secciones claras. Incluye definiciones, ejemplos y, cuando corresponda, comparaciones con conceptos relacionados. Al final de tu respuesta, incluye una sección titulada 'Calificación', donde evalúes la claridad, rigor conceptual y profundidad de tu propia explicación en una escala de 1 a 5.",
     config= {
         "temperature": 0
     },
-    labels= ["production"]
-);
+    labels= ["production"],
+    tags=["tone:academico", "prompt-management"]
+)
+print("✅ Prompt 'explicacion_academica' creado.")
 
+print("⏳ Creando prompt 'explicacion_amistosa'...")
 langfuse.create_prompt(
   name="explicacion_amistosa",
   prompt="Responde de forma cercana, conversacional y sencilla. Usa ejemplos cotidianos y metáforas cuando sea útil. Mantén un tono amable y evita el exceso de tecnicismos salvo que sean necesarios para la claridad. Al final de tu respuesta, incluye una sección llamada 'Calificación', donde evalúes qué tan comprensible, amigable y útil fue tu explicación en una escala de 1 a 5.",
   config= {
     "temperature": 0.3
   },
-  labels= ["production"]
-);
+  labels= ["production"],
+  tags=["tone:amistoso", "prompt-management"]
+)
+print("✅ Prompt 'explicacion_amistosa' creado.")
 
+print("⏳ Creando prompt 'explicacion_directa'...")
 langfuse.create_prompt(
   name="explicacion_directa",
   prompt="Responde de forma breve, precisa y orientada a la acción. No ofrezcas explicaciones extensas a menos que sean necesarias. Prioriza pasos concretos, buenas prácticas y advertencias relevantes. Al final de tu respuesta, incluye una sección titulada 'Calificación', donde evalúes qué tan eficiente, accionable y clara fue tu respuesta en una escala de 1 a 5.",
   config= {
     "temperature": 0
   },
-  labels= ["production"]
-);
+  labels= ["production"],
+  tags=["tone:directo", "prompt-management"]
+)
+print("✅ Prompt 'explicacion_directa' creado.")
+
+langfuse.flush()
+
+print("\n" + "="*50)
+print("   ✅ Todos los prompts fueron creados exitosamente")
+print("="*50)
+print("\n📋 Prompts creados:")
+print("   1. story_summarization - Para resumir historias en JSON")
+print("   2. explicacion_academica - Tono académico y formal")
+print("   3. explicacion_amistosa - Tono conversacional y amigable")
+print("   4. explicacion_directa - Tono breve y pragmático")
+print("\n🔗 Verifica en: https://cloud.langfuse.com → Prompts")
+print("\n💡 Siguiente paso: Ejecuta 'python prompt_management/prompt_app.py'")
+print("   para usar la aplicación interactiva.\n")

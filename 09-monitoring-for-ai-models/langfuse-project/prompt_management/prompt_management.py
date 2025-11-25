@@ -1,5 +1,5 @@
 from langfuse import Langfuse
-from langfuse.openai import openai
+from openai import OpenAI  # Sin auto-instrumentación para evitar traces duplicados
 import json
 import os
 from dotenv import load_dotenv
@@ -12,7 +12,8 @@ langfuse = Langfuse(
     base_url=os.environ.get("LANGFUSE_BASE_URL")
 )
 
-client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# Cliente OpenAI sin instrumentación automática
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 prompt = langfuse.get_prompt("story_summarization")
 
@@ -36,15 +37,42 @@ messages = [
  
 model = prompt.config["model"]
 temperature = prompt.config["temperature"]
+
+# Crear trace manual
+span = langfuse.start_span(
+    name="story_summarization",
+    input=story,
+    metadata={
+        "prompt_name": "story_summarization",
+        "model": model
+    }
+)
+
+# Crear generation dentro del span
+generation = span.start_observation(
+    as_type="generation",
+    name="summarize_story",
+    model=model,
+    input=story
+)
  
 res = client.chat.completions.create(
   model = model,
   temperature = temperature,
   messages = messages,
-  response_format = { "type": "json_object" },
-  langfuse_prompt = prompt
+  response_format = { "type": "json_object" }
 )
+
+output = res.choices[0].message.content
+
+# Actualizar y cerrar generation y span
+generation.update(output=output)
+generation.end()
+span.update(output=output)
+span.end()
+
+langfuse.flush()
  
-res = json.loads(res.choices[0].message.content)
+res = json.loads(output)
 
 print(res)

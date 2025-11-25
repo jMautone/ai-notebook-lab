@@ -112,7 +112,8 @@ async def run_experiment(row):
     )
     
     # Crear un generation para la generación
-    generation = span.start_generation(
+    generation = span.start_observation(
+        as_type="generation",
         name="rag_query",
         model="gpt-4o-mini",
         input=question
