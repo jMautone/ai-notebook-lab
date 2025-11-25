@@ -12,30 +12,29 @@ client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 def run_inefficient_prompt():
     """
-    Prompt ineficiente: solicita una receta con instrucciones detalladas
-    sin especificar límites ni estructura, lo que genera respuestas largas
-    y consume más tokens.
+    Prompt ineficiente: solicita una historia detallada de internet
+    sin restricciones de longitud, fomentando una respuesta narrativa y extensa.
     """
     print("=" * 80)
     print("🔴 EJECUTANDO PROMPT INEFICIENTE")
     print("=" * 80)
     start_time = time.time()
     
-    # Prompt original ineficiente del ejercicio
-    prompt = "Genera una receta de pasta con instrucciones detalladas."
+    # Prompt ineficiente: Historia de Internet detallada
+    prompt = "Cuéntame la historia de internet con todo detalle. Empieza desde ARPANET, pasa por el protocolo TCP/IP, la creación de la World Wide Web, la burbuja de las puntocom, hasta hoy. Quiero un texto largo y narrativo."
     
     print(f"\nPrompt: {prompt}")
     print(f"Longitud del prompt: {len(prompt)} caracteres\n")
     
     # Crear span para el experimento
     span = langfuse.start_span(
-        name="recipe_optimization_experiment",
-        metadata={"tags": ["inefficient"], "prompt_type": "detailed_recipe"}
+        name="optimization_experiment",
+        metadata={"tags": ["inefficient"], "prompt_type": "detailed_history"}
     )
     
     # Crear generation dentro del span
     generation = span.start_generation(
-        name="inefficient_recipe_generation",
+        name="inefficient_generation",
         model="gpt-4o-mini",
         input=prompt
     )
@@ -74,32 +73,29 @@ def run_inefficient_prompt():
 
 def run_optimized_prompt():
     """
-    Prompt optimizado: aplica múltiples estrategias de optimización:
-    1. Reducir longitud innecesaria: solicita formato conciso
-    2. Pedir respuestas más breves: especifica límites (máx 150 palabras)
-    3. Reestructurar de manera más clara: usa formato JSON estructurado
-    4. Instrucciones más directas: especifica exactamente qué campos incluir
+    Prompt optimizado: solicita la misma información (Historia de Internet)
+    pero con restricciones estrictas de formato y longitud para eficiencia.
     """
     print("\n" + "=" * 80)
     print("🟢 EJECUTANDO PROMPT OPTIMIZADO")
     print("=" * 80)
     start_time = time.time()
     
-    # Prompt optimizado con múltiples estrategias
-    prompt = """Receta de pasta. JSON: {"nombre": str, "ingredientes": list[str] (máx 6), "pasos": list[str] (máx 4 pasos, cada uno <20 palabras)}. Máx 150 palabras total."""
+    # Prompt optimizado: Hitos clave, formato lista, conciso
+    prompt = "Historia de Internet. 5 hitos clave con año. Formato lista. Máx 10 palabras por hito. Sin introducción ni conclusión."
     
     print(f"\nPrompt: {prompt}")
     print(f"Longitud del prompt: {len(prompt)} caracteres\n")
     
     # Crear span para el experimento
     span = langfuse.start_span(
-        name="recipe_optimization_experiment",
-        metadata={"tags": ["optimized"], "prompt_type": "structured_recipe"}
+        name="optimization_experiment",
+        metadata={"tags": ["optimized"], "prompt_type": "concise_history"}
     )
     
     # Crear generation dentro del span
     generation = span.start_generation(
-        name="optimized_recipe_generation",
+        name="optimized_generation",
         model="gpt-4o-mini",
         input=prompt
     )
@@ -107,7 +103,7 @@ def run_optimized_prompt():
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0  # Temperatura 0 para mayor consistencia
+        temperature=0
     )
     
     output = response.choices[0].message.content
