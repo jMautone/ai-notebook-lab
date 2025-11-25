@@ -7,19 +7,15 @@ on:
 
 permissions:
   contents: write
-  actions: read
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate changelog
         id: changelog
@@ -38,28 +34,25 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          name: Release ${{ github.ref_name }}
-          body: |
-            ## 🚀 Release ${{ github.ref_name }}
-            
-            ### 📚 AI Notebook Lab - Laboratorios de Inteligencia Artificial
-            
-            Este release incluye laboratorios prácticos para:
-            - 🧠 LLM Fundamentals
-            - 🗄️ Vector Databases
-            - 🔗 RAG Pipeline
-            - 🤖 Agents & Tools
-            - 🚀 Advanced RAG Agents
-            - 🌐 Model Context Protocol (MCP)
-            - 🛠️ Custom MCP Servers
-            - 🧪 Evals for AI Models
-            - 📊 Monitoring with Langfuse
-            
-            ### Cambios en esta versión:
-            ${{ steps.changelog.outputs.changes }}
-          draft: false
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create ${{ github.ref_name }} \
+            --title "Release ${{ github.ref_name }}" \
+            --notes "## 🚀 Release ${{ github.ref_name }}
+          
+          ### 📚 AI Notebook Lab - Laboratorios de Inteligencia Artificial
+          
+          Este release incluye laboratorios prácticos para:
+          - 🧠 LLM Fundamentals
+          - 🗄️ Vector Databases  
+          - 🔗 RAG Pipeline
+          - 🤖 Agents & Tools
+          - 🚀 Advanced RAG Agents
+          - 🌐 Model Context Protocol (MCP)
+          - 🛠️ Custom MCP Servers
+          - 🧪 Evals for AI Models
+          - 📊 Monitoring with Langfuse
+          
+          ### Cambios en esta versión:
+          ${{ steps.changelog.outputs.changes }}"
