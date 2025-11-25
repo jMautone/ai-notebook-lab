@@ -66,7 +66,13 @@ python prompt_management/prompt_app.py
 *Sigue las instrucciones en consola para elegir un tono y hacer una pregunta.*
 
 ### Ejercicio 7: A/B Testing
-Ejecuta el experimento de A/B testing con prompts aleatorios.
+Primero, crea los prompts para el experimento A/B:
+
+```powershell
+python prompt_management/prompt_AB_test_creation.py
+```
+
+Luego, ejecuta el experimento de A/B testing con prompts aleatorios:
 
 ```powershell
 python prompt_management/prompt_AB_test.py

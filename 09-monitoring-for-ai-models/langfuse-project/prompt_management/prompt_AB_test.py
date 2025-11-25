@@ -1,6 +1,6 @@
 import random
 from langfuse import Langfuse
-from openai import OpenAI  # Sin auto-instrumentación para evitar traces duplicados
+from openai import OpenAI
 import os
 from dotenv import load_dotenv
 
@@ -15,31 +15,48 @@ langfuse = Langfuse(
 # Cliente OpenAI sin instrumentación automática
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-prompt_a = langfuse.get_prompt("itinerary_planner_experiment", label="prod-a")
-prompt_b = langfuse.get_prompt("itinerary_planner_experiment", label="prod-b")
+# Cargar los dos prompts separados
+print("\n⏳ Cargando prompts desde Langfuse...")
+try:
+    prompt_a = langfuse.get_prompt("itinerary_planner_concise")
+    prompt_b = langfuse.get_prompt("itinerary_planner_detailed")
+    print("✅ Prompts cargados correctamente.")
+except Exception as e:
+    print(f"❌ Error al cargar prompts: {e}")
+    print("💡 Ejecuta primero: python prompt_management/prompt_AB_test_creation.py")
+    exit(1)
+
+VARIANTS = {
+    "A": ("itinerary_planner_concise", prompt_a),
+    "B": ("itinerary_planner_detailed", prompt_b)
+}
 
 print("\n" + "="*60)
 print("   🧪 A/B Testing de Prompts con Langfuse")
 print("="*60 + "\n")
  
 for i in range(10):
-    selected_prompt = random.choice([prompt_a, prompt_b])
-    prompt_label = "prod-a" if selected_prompt == prompt_a else "prod-b"
+    # Seleccionar variante aleatoriamente
+    variant_key = random.choice(["A", "B"])
+    prompt_name, selected_prompt = VARIANTS[variant_key]
 
     system_message = selected_prompt.prompt
+    user_input = "Quiero recomendaciones para mi viaje a Italia"
 
     messages = [
-        {"role":"system","content": system_message},
-        {"role":"user","content": "Quiero recomendaciones para mi viaje a Italia"}
+        {"role": "system", "content": system_message},
+        {"role": "user", "content": user_input}
     ]
     
-    # Crear trace manual para el experimento A/B
+    # Crear span con metadata clara del experimento
     span = langfuse.start_span(
         name="ab_test_experiment",
-        input="Quiero recomendaciones para mi viaje a Italia",
+        input=user_input,
         metadata={
-            "prompt_label": prompt_label,
-            "prompt_name": "itinerary_planner_experiment",
+            "tags": [f"variant:{variant_key}", "ab-test", f"prompt:{prompt_name}"],
+            "experiment": "itinerary_planner_ab_test",
+            "variant": variant_key,
+            "prompt_name": prompt_name,
             "run_number": i + 1
         }
     )
@@ -53,8 +70,8 @@ for i in range(10):
     )
      
     res = client.chat.completions.create(
-      model = "gpt-4o-mini",
-      messages = messages
+        model="gpt-4o-mini",
+        messages=messages
     )
     
     output = res.choices[0].message.content
@@ -65,7 +82,14 @@ for i in range(10):
     span.update(output=output)
     span.end()
 
-    print(f"Run {i+1} [{prompt_label}]: {output[:100]}...\n")
+    print(f"Run {i+1} [Variant {variant_key}]: {output[:80]}...\n")
 
 langfuse.flush()
-print("\n✅ Trazas enviadas a Langfuse. Revisa el dashboard para analizar el A/B test.")
+
+print("\n" + "="*60)
+print("   ✅ Experimento A/B completado")
+print("="*60)
+print("\n📊 En Langfuse puedes filtrar por:")
+print("   • variant:A → Respuestas concisas")
+print("   • variant:B → Respuestas detalladas")
+print("\n🔗 Revisa el dashboard: https://cloud.langfuse.com\n")
